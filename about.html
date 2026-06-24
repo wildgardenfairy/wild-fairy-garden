@@ -12,7 +12,8 @@
   /* ── HERO IMAGE: seamless, no borders, melts into parchment ── */
   .peak-img-wrap {
     display: flex; justify-content: center;
-    margin: 0 auto 8px;
+    /* sit the landmark lower on the page */
+    margin: 26px auto 8px;
     /* no background, no shadow — image must have transparent background */
   }
   .peak-img-wrap img {
@@ -31,7 +32,9 @@
   .lookout-title {
     font-family: 'Beth Ellen', cursive;
     font-size: clamp(28px, 5vw, 48px);
-    text-align: center; margin-bottom: 6px; line-height: 1.1;
+    /* extra space below so the Beth Ellen descenders don't overlap
+       the subtitle line beneath */
+    text-align: center; margin-bottom: 18px; line-height: 1.1;
   }
   .lookout-sub {
     font-size: clamp(14px, 1.8vw, 17px);
@@ -113,8 +116,8 @@
 
   <!-- ── OVERVIEW COPY ── -->
   <p class="body-text" style="text-align:center; max-width:520px; margin: 0 auto 12px;">
-    welcome to the wild fairy garden, magical creature! i'm so glad you're here. this is a safe place for the thoughtful blooms.
-    a place to pause, breathe and see the garden stretching out below, before .
+    from up here, you can see everything. the wild fairy garden stretches out below —
+    a place made of music, words, and the kind of quiet that only forests know.
     each landmark holds something different. wander wherever calls to you.
   </p>
   <p class="body-text" style="text-align:center; max-width:480px; margin: 0 auto 0;">
