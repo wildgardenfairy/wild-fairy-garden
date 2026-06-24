@@ -66,6 +66,9 @@ body::after {
 .page-hero .sub {
   font-size: clamp(14px, 1.8vw, 17px); color: var(--ink-light);
   font-style: italic; max-width: 460px; line-height: 1.6;
+  /* name → description spacing matches pigeon's peak (18px total:
+     10px flex gap + 8px here) */
+  margin-top: 8px;
 }
 
 /* ── WAVY INK DIVIDER ── */
@@ -367,9 +370,6 @@ body::before {
 
   /* Return-map compass always visible on mobile */
   .return-map { opacity: 1; }
-
-  /* Smaller hero image */
-  .page-hero img { width: min(110px, 28vw); height: min(110px, 28vw); }
 
   /* Videos stack single column */
   .video-grid { grid-template-columns: 1fr; }
