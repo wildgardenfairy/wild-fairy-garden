@@ -229,16 +229,18 @@ body::before {
       rgba(245,240,232,0)    120px) bottom / 100% 120px no-repeat,
     linear-gradient(to right,
       rgba(245,240,232,1)    0,
-      rgba(245,240,232,0.95) 6px,
-      rgba(245,240,232,0.6)  34px,
-      rgba(245,240,232,0.25) 64px,
-      rgba(245,240,232,0)    100px) left   / 100px 100% no-repeat,
+      rgba(245,240,232,0.98) 8px,
+      rgba(245,240,232,0.82) 34px,
+      rgba(245,240,232,0.5)  64px,
+      rgba(245,240,232,0.2)  92px,
+      rgba(245,240,232,0)    120px) left   / 120px 100% no-repeat,
     linear-gradient(to left,
       rgba(245,240,232,1)    0,
-      rgba(245,240,232,0.95) 6px,
-      rgba(245,240,232,0.6)  34px,
-      rgba(245,240,232,0.25) 64px,
-      rgba(245,240,232,0)    100px) right  / 100px 100% no-repeat;
+      rgba(245,240,232,0.98) 8px,
+      rgba(245,240,232,0.82) 34px,
+      rgba(245,240,232,0.5)  64px,
+      rgba(245,240,232,0.2)  92px,
+      rgba(245,240,232,0)    120px) right  / 120px 100% no-repeat;
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -309,17 +311,15 @@ body::before {
 /* ── SIDES ── */
 .nav-arrow.west {
   left: 16px; top: 50%; transform: translateY(-50%);
-  /* label sits to the RIGHT (tail side) so words come before the
-     left-pointing arrowhead — matches the other arrows */
-  flex-direction: row; gap: 7px;
+  /* label stacked ABOVE the arrow line (like a small caption) */
+  flex-direction: column-reverse;
 }
 .nav-arrow.west:hover { transform: translateY(-50%) translateX(-4px); }
 
 .nav-arrow.east {
   right: 16px; top: 50%; transform: translateY(-50%);
-  /* label sits to the LEFT (tail side) so words come before the
-     right-pointing arrowhead — matches the other arrows */
-  flex-direction: row-reverse; gap: 7px;
+  /* label stacked ABOVE the arrow line (like a small caption) */
+  flex-direction: column-reverse;
 }
 .nav-arrow.east:hover { transform: translateY(-50%) translateX(4px); }
 
