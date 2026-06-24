@@ -46,10 +46,13 @@ body::after {
    arrows (north ≈top 16px, reaching ~90px) and never overlaps them. ── */
 .page-hero {
   display: flex; flex-direction: column; align-items: center;
-  text-align: center; margin-top: 36px; margin-bottom: 36px; gap: 10px;
+  text-align: center; margin-top: 44px; margin-bottom: 36px; gap: 10px;
 }
+/* Size by HEIGHT, not a square box — every landmark renders at the
+   same height and top-aligns, so they all start at the same point
+   (matching faraway tree) regardless of their aspect ratio. ── */
 .page-hero img {
-  width: min(155px, 35vw); height: min(155px, 35vw); object-fit: contain;
+  height: min(150px, 34vw); width: auto; max-width: 100%; object-fit: contain;
   filter: drop-shadow(0 5px 13px rgba(42,33,24,0.12));
   animation: hf 5s ease-in-out infinite;
 }
@@ -206,11 +209,36 @@ body::before {
   inset: 0;
   z-index: 80;
   pointer-events: none;
+  /* Multi-stop gradients: the fade begins right at the edge (only a
+     few px of solid) and eases out proportionately to fully
+     transparent — no hard line anywhere. parchment = 245,240,232. */
   background:
-    linear-gradient(to bottom, var(--parchment) 38px, transparent 150px) top    / 100% 150px no-repeat,
-    linear-gradient(to top,    var(--parchment) 38px, transparent 140px) bottom / 100% 140px no-repeat,
-    linear-gradient(to right,  var(--parchment) 12px, transparent 92px)  left   / 92px 100%  no-repeat,
-    linear-gradient(to left,   var(--parchment) 12px, transparent 92px)  right  / 92px 100%  no-repeat;
+    linear-gradient(to bottom,
+      rgba(245,240,232,1)    0,
+      rgba(245,240,232,0.98) 8px,
+      rgba(245,240,232,0.82) 34px,
+      rgba(245,240,232,0.5)  64px,
+      rgba(245,240,232,0.2)  92px,
+      rgba(245,240,232,0)    120px) top    / 100% 120px no-repeat,
+    linear-gradient(to top,
+      rgba(245,240,232,1)    0,
+      rgba(245,240,232,0.98) 8px,
+      rgba(245,240,232,0.82) 34px,
+      rgba(245,240,232,0.5)  64px,
+      rgba(245,240,232,0.2)  92px,
+      rgba(245,240,232,0)    120px) bottom / 100% 120px no-repeat,
+    linear-gradient(to right,
+      rgba(245,240,232,1)    0,
+      rgba(245,240,232,0.95) 6px,
+      rgba(245,240,232,0.6)  34px,
+      rgba(245,240,232,0.25) 64px,
+      rgba(245,240,232,0)    100px) left   / 100px 100% no-repeat,
+    linear-gradient(to left,
+      rgba(245,240,232,1)    0,
+      rgba(245,240,232,0.95) 6px,
+      rgba(245,240,232,0.6)  34px,
+      rgba(245,240,232,0.25) 64px,
+      rgba(245,240,232,0)    100px) right  / 100px 100% no-repeat;
 }
 
 /* ═══════════════════════════════════════════════════════════════
