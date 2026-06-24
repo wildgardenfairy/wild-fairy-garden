@@ -309,13 +309,17 @@ body::before {
 /* ── SIDES ── */
 .nav-arrow.west {
   left: 16px; top: 50%; transform: translateY(-50%);
-  flex-direction: row-reverse; gap: 7px;
+  /* label sits to the RIGHT (tail side) so words come before the
+     left-pointing arrowhead — matches the other arrows */
+  flex-direction: row; gap: 7px;
 }
 .nav-arrow.west:hover { transform: translateY(-50%) translateX(-4px); }
 
 .nav-arrow.east {
   right: 16px; top: 50%; transform: translateY(-50%);
-  flex-direction: row; gap: 7px;
+  /* label sits to the LEFT (tail side) so words come before the
+     right-pointing arrowhead — matches the other arrows */
+  flex-direction: row-reverse; gap: 7px;
 }
 .nav-arrow.east:hover { transform: translateY(-50%) translateX(4px); }
 

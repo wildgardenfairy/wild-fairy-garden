@@ -11,6 +11,8 @@
   .contact-cols { display:grid; grid-template-columns:1fr 1.2fr; gap:44px; align-items:start; }
   @media(max-width:620px){ .contact-cols{ grid-template-columns:1fr; gap:24px; } }
   .well-note { margin-bottom:24px; font-style:italic; font-size:13px; color:var(--ink-faint); line-height:1.65; }
+  /* slightly larger hero landmark on this page */
+  .page-hero img { height: min(178px, 40vw); }
 </style>
 </head>
 <body>
@@ -98,6 +100,16 @@
     </div>
   </div>
 </div>
+
+<!-- Northeast → Pigeon's Peak (peak is up-right of the well) -->
+<a class="nav-arrow northeast" href="about.html">
+  <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs><filter id="f3"><feTurbulence type="turbulence" baseFrequency="0.05" numOctaves="2" seed="24" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2" xChannelSelector="R" yChannelSelector="G"/></filter></defs>
+    <path d="M5 35 C15 25, 25 15, 35 5" stroke="#2a2118" stroke-width="1.5" stroke-linecap="round" filter="url(#f3)"/>
+    <path d="M21 5 C29 5, 35 5, 35 21" stroke="#2a2118" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" filter="url(#f3)"/>
+  </svg>
+  <span class="arrow-lbl">pigeon's peak</span>
+</a>
 
 <!-- East → Faraway Tree (well is center-left; faraway is to the east) -->
 <a class="nav-arrow east" href="blog.html">

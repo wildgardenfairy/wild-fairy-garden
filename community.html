@@ -16,6 +16,8 @@
   .plink-go   { font-size:12px; color:var(--ink-faint); margin-top:5px; border-bottom:1px solid rgba(42,33,24,0.18); display:inline-block; padding-bottom:1px; transition:border-color 0.2s; }
   .plink:hover .plink-go { border-color:var(--ink); color:var(--ink); }
   .ripple { margin-top:32px; font-style:italic; font-size:clamp(13px,1.6vw,16px); color:var(--ink-faint); line-height:1.75; text-align:center; }
+  /* align the two top arrows on the same y-axis (NE down to match NW) */
+  .nav-arrow.northeast { top: 80px; }
 </style>
 </head>
 <body>
@@ -90,6 +92,16 @@
     <path d="M21 5 C29 5, 35 5, 35 21" stroke="#2a2118" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" filter="url(#f2)"/>
   </svg>
   <span class="arrow-lbl">singing hollow</span>
+</a>
+
+<!-- West → Field of Golden Daffodils -->
+<a class="nav-arrow west" href="reviews.html">
+  <svg width="48" height="32" viewBox="0 0 48 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs><filter id="f3"><feTurbulence type="turbulence" baseFrequency="0.05" numOctaves="2" seed="31" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2" xChannelSelector="R" yChannelSelector="G"/></filter></defs>
+    <path d="M44 16 C32 15.5, 20 16.5, 4 16" stroke="#2a2118" stroke-width="1.5" stroke-linecap="round" filter="url(#f3)"/>
+    <path d="M14 7 C8 11, 3 16, 14 25" stroke="#2a2118" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" filter="url(#f3)"/>
+  </svg>
+  <span class="arrow-lbl">field of golden daffodils</span>
 </a>
 
 <script src="nav.js"></script>
