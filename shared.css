@@ -41,10 +41,12 @@ body::after {
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* ── PAGE HERO ── */
+/* ── PAGE HERO ──
+   Extra top margin so the landmark image starts below the top nav
+   arrows (north ≈top 16px, reaching ~90px) and never overlaps them. ── */
 .page-hero {
   display: flex; flex-direction: column; align-items: center;
-  text-align: center; margin-bottom: 36px; gap: 10px;
+  text-align: center; margin-top: 36px; margin-bottom: 36px; gap: 10px;
 }
 .page-hero img {
   width: min(155px, 35vw); height: min(155px, 35vw); object-fit: contain;
@@ -193,15 +195,22 @@ body::after {
 .success-msg { display: none; font-style: italic; font-size: 17px; color: var(--ink-light); margin-top: 16px; line-height: 1.7; }
 
 
-/* ── BOTTOM NAV BAR — full-width parchment strip behind bottom arrows ── */
+/* ── EDGE FADE SCRIM ──
+   A fixed, full-viewport veil that fades the parchment in along all
+   four edges, so any words or images scrolling underneath the fixed
+   nav arrows gently blend out and never visually collide with them.
+   Sits above page content (z-index 1) but below the arrows (81).   ── */
 body::before {
   content: '';
   position: fixed;
-  bottom: 0; left: 0; right: 0;
-  height: 0px;          /* tall enough to cover all bottom arrows */
-  background: var(--parchment);
-  z-index: 80;           /* above page content, below the arrows (z-index 81) */
+  inset: 0;
+  z-index: 80;
   pointer-events: none;
+  background:
+    linear-gradient(to bottom, var(--parchment) 38px, transparent 150px) top    / 100% 150px no-repeat,
+    linear-gradient(to top,    var(--parchment) 38px, transparent 140px) bottom / 100% 140px no-repeat,
+    linear-gradient(to right,  var(--parchment) 12px, transparent 92px)  left   / 92px 100%  no-repeat,
+    linear-gradient(to left,   var(--parchment) 12px, transparent 92px)  right  / 92px 100%  no-repeat;
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -320,6 +329,9 @@ body::before {
 
   /* Hide directional arrows — users navigate via the bottom bar */
   .nav-arrow { display: none; }
+
+  /* No arrows on mobile, so drop the edge fade scrim */
+  body::before { display: none; }
 
   /* Return-map compass always visible on mobile */
   .return-map { opacity: 1; }
