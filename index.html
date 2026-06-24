@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wild Fairy Garden</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Beth+Ellen&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --ink: #2a2118;
+  --ink-light: #4a3f33;
+  --parchment: #f5f0e8;
+  --parchment-dark: #ede5d0;
+  --dashed: #b5a898;
+}
+html, body {
+  width: 100%; height: 100%;
+  background: var(--parchment);
+  font-family: 'Beth Ellen', cursive;
+  color: var(--ink);
+  overflow: hidden;
+}
+body::after {
+  content: ''; position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.032'/%3E%3C/svg%3E");
+  pointer-events: none; z-index: 200;
+}
+
+/* ── OUTER STAGE: fills viewport, centres the inner canvas ── */
+#map-stage {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── INNER CANVAS: fixed reference size 1440×900
+   JS scales the whole thing as one unit so map + landmarks
+   always move together perfectly ── */
+#map-inner {
+  position: relative;
+  width: 1440px;
+  height: 900px;
+  flex-shrink: 0;
+  transform-origin: center center;
+}
+
+/* ── MAP BACKGROUND ──
+   All positioning values here are relative to the 1440×900 canvas.
+   Adjust top / left / width / transform to reposition the map. ── */
+#map-bg {
+  position: absolute;
+  width: 90%;
+  height: auto;
+  top: 120px;
+  left: 240px;
+  transform: scaleX(1.6);
+  transform-origin: center top;
+  mix-blend-mode: multiply;
+  opacity: 0.88;
+  pointer-events: none;
+}
+
+/* ── COMPASS + WELCOME ── */
+.map-header {
+  position: absolute; top: 20px; left: -110px; z-index: 30;
+  display: flex; flex-direction: column; gap: 1px;
+}
+.compass-img { width: 170px; height: 170px; opacity: 1; }
+.welcome-text {
+  font-size: 14px;
+  color: var(--ink-light); line-height: 1.6; opacity: 0.85;
+  white-space: nowrap; /* single line */
+}
+
+/* ── LANDMARKS ── */
+.landmark {
+  position: absolute;
+  display: flex; flex-direction: column; align-items: center;
+  cursor: pointer; z-index: 20;
+  text-decoration: none; color: var(--ink);
+  transform: translateX(-50%);
+  animation: lmIn 0.7s ease both;
+}
+.lm-img-wrap {
+  transition: transform 0.3s cubic-bezier(.34,1.56,.64,1), filter 0.3s ease;
+  filter: drop-shadow(0 2px 5px rgba(42,33,24,0.1));
+  display: flex; align-items: flex-end; justify-content: center;
+}
+.landmark:hover .lm-img-wrap {
+  transform: translateY(-6px) scale(1.07);
+  filter: drop-shadow(0 8px 18px rgba(42,33,24,0.24));
+}
+.lm-img { object-fit: contain; display: block; }
+.lm-fallback { display: none; align-items: center; justify-content: center; font-size: 38px; }
+.lm-label {
+  margin-top: 5px; font-size: 13px;
+  white-space: nowrap; text-align: center;
+  text-shadow: 0 0 14px var(--parchment), 0 0 22px var(--parchment), 0 1px 3px var(--parchment);
+  letter-spacing: 0.02em;
+}
+
+@keyframes lmIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(12px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+#lm-pigeon  { animation-delay: 0.05s; }
+#lm-singing { animation-delay: 0.15s; }
+#lm-well    { animation-delay: 0.25s; }
+#lm-faraway { animation-delay: 0.35s; }
+#lm-field   { animation-delay: 0.45s; }
+#lm-frog    { animation-delay: 0.55s; }
+
+/* ── POSITIONS (% of 1440×900 canvas — same as before) ── */
+#lm-pigeon  { left: 60%;  top: 3%;  }
+#lm-singing { left: 101%;  top: 12%; }
+#lm-well    { left: 24%;  top: 34%; }
+#lm-faraway { left: 60%;  top: 36%; }
+#lm-field   { left: 8%;   top: 71%; }
+#lm-frog    { left: 81%;  top: 60%; }
+
+/* ── SIZES (px — fixed since the canvas is fixed-size, JS handles scaling) ── */
+#lm-pigeon  .lm-img { width: 378px; height: 58px;  }
+#lm-singing .lm-img { width: 165px; height: 133px; }
+#lm-well    .lm-img { width: 110px; height: 138px; }
+#lm-faraway .lm-img { width: 130px; height: 130px; }
+#lm-field   .lm-img { width: 250px; height: 130px; }
+#lm-frog    .lm-img { width: 233px; height: 85px;  }
+
+/* ── ZOOM OVERLAY ── */
+#zoom-overlay {
+  position: fixed; inset: 0; background: var(--parchment);
+  z-index: 999; opacity: 0; pointer-events: none;
+  transition: opacity 0.5s ease;
+}
+#zoom-overlay.active { opacity: 1; pointer-events: all; }
+
+/* ── MOBILE ── */
+@media (max-width: 768px) { #map-stage { display: none; } #mob { display: flex; } }
+#mob {
+  display: none; flex-direction: column;
+  width: 100vw; height: 100vh; background: var(--parchment);
+}
+.mob-h { padding: 28px 24px 10px; flex-shrink: 0; }
+.mob-h h1 { font-size: 26px; }
+.mob-h p  { font-size: 13px; color: var(--ink-light); margin-top: 4px; }
+.ct {
+  display: flex; flex: 1; overflow-x: scroll;
+  scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; scrollbar-width: none;
+}
+.ct::-webkit-scrollbar { display: none; }
+.cs {
+  scroll-snap-align: start; flex: 0 0 100vw; height: 100%;
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 14px;
+  text-decoration: none; color: var(--ink); padding: 20px; cursor: pointer;
+}
+.cs img { width: min(50vw,190px); height: min(50vw,190px); object-fit: contain; filter: drop-shadow(0 4px 10px rgba(42,33,24,0.13)); animation: fl 4s ease-in-out infinite; }
+.cs:nth-child(even) img { animation-delay: -2s; }
+.cs .sn { font-size: 22px; } .cs .ss { font-size: 13px; color: var(--ink-light); }
+.dots { display: flex; justify-content: center; gap: 7px; padding: 14px; flex-shrink: 0; }
+.dot  { width: 6px; height: 6px; border-radius: 50%; background: var(--dashed); transition: background 0.3s, transform 0.3s; }
+.dot.active { background: var(--ink); transform: scale(1.4); }
+@keyframes fl { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+</style>
+</head>
+<body>
+<div id="zoom-overlay"></div>
+
+<div id="map-stage">
+  <div id="map-inner">
+
+    <img id="map-bg" src="map.svg" alt="">
+
+    <div class="map-header">
+      <img class="compass-img" src="compass.svg" alt="compass"
+           onerror="this.style.display='none'">
+      <div class="welcome-text">
+        welcome to the wild fairy garden. click to explore
+      </div>
+    </div>
+
+    <a class="landmark" id="lm-pigeon" href="about.html" aria-label="Pigeon's Peak">
+      <div class="lm-img-wrap">
+        <img class="lm-img" src="pigeonspeak.svg" alt="Pigeon's Peak"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+        <div class="lm-fallback">⛰️</div>
+      </div>
+      <span class="lm-label">pigeon's peak</span>
+    </a>
+
+    <a class="landmark" id="lm-singing" href="videos.html" aria-label="Singing Hollow">
+      <div class="lm-img-wrap">
+        <img class="lm-img" src="singinghollow.svg" alt="Singing Hollow"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+        <div class="lm-fallback">🌲</div>
+      </div>
+      <span class="lm-label">singing hollow</span>
+    </a>
+
+    <a class="landmark" id="lm-well" href="contact.html" aria-label="Wishing Well">
+      <div class="lm-img-wrap">
+        <img class="lm-img" src="wishingwell.svg" alt="Wishing Well"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+        <div class="lm-fallback">🪣</div>
+      </div>
+      <span class="lm-label">wishing well</span>
+    </a>
+
+    <a class="landmark" id="lm-faraway" href="blog.html" aria-label="Faraway Tree">
+      <div class="lm-img-wrap">
+        <img class="lm-img" src="farawaytree.svg" alt="Faraway Tree"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+        <div class="lm-fallback">🌳</div>
+      </div>
+      <span class="lm-label">faraway tree</span>
+    </a>
+
+    <a class="landmark" id="lm-field" href="reviews.html" aria-label="Field of Golden Daffodils">
+      <div class="lm-img-wrap">
+        <img class="lm-img" src="goldenfield.svg" alt="Field of Golden Daffodils"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+        <div class="lm-fallback">🌼</div>
+      </div>
+      <span class="lm-label">field of golden daffodils</span>
+    </a>
+
+    <a class="landmark" id="lm-frog" href="community.html" aria-label="Frog Pond">
+      <div class="lm-img-wrap">
+        <img class="lm-img" src="frogpond.svg" alt="Frog Pond"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+        <div class="lm-fallback">🐸</div>
+      </div>
+      <span class="lm-label">frog pond</span>
+    </a>
+
+  </div><!-- /map-inner -->
+</div><!-- /map-stage -->
+
+<!-- MOBILE -->
+<div id="mob">
+  <div class="mob-h"><h1>wild fairy garden</h1><p>swipe to wander ✦</p></div>
+  <div class="ct" id="cT">
+    <a class="cs" href="about.html"><img src="pigeonspeak.svg" alt="" onerror="this.style.display='none'"><div class="sn">pigeon's peak</div><div class="ss">home · about</div></a>
+    <a class="cs" href="videos.html"><img src="singinghollow.svg" alt="" onerror="this.style.display='none'"><div class="sn">singing hollow</div><div class="ss">videos</div></a>
+    <a class="cs" href="blog.html"><img src="farawaytree.svg" alt="" onerror="this.style.display='none'"><div class="sn">faraway tree</div><div class="ss">blog</div></a>
+    <a class="cs" href="contact.html"><img src="wishingwell.svg" alt="" onerror="this.style.display='none'"><div class="sn">wishing well</div><div class="ss">contact</div></a>
+    <a class="cs" href="community.html"><img src="frogpond.svg" alt="" onerror="this.style.display='none'"><div class="sn">frog pond</div><div class="ss">community</div></a>
+    <a class="cs" href="reviews.html"><img src="goldenfield.svg" alt="" onerror="this.style.display='none'"><div class="sn">field of golden daffodils</div><div class="ss">reviews</div></a>
+  </div>
+  <div class="dots" id="cD"></div>
+</div>
+
+<script>
+  // ── UNIFIED SCALING ─────────────────────────────────────────────
+  // #map-inner is designed at 1440×900. JS scales it to fit the
+  // window so the map background and all landmarks move as one unit.
+  const BASE_W = 1440;
+  const BASE_H = 900;
+
+  function scaleMap() {
+    const inner = document.getElementById('map-inner');
+    if (!inner) return;
+    const scale = Math.min(window.innerWidth / BASE_W, window.innerHeight / BASE_H);
+    inner.style.transform = `scale(${scale})`;
+  }
+
+  scaleMap();
+  window.addEventListener('resize', scaleMap);
+  // ────────────────────────────────────────────────────────────────
+
+  // Zoom transition
+  document.querySelectorAll('.landmark, .cs').forEach(link => {
+    link.addEventListener('click', function(e) {
+      e.preventDefault();
+      const href = this.getAttribute('href');
+      const wrap = this.querySelector('.lm-img-wrap') || this.querySelector('img');
+      const ov = document.getElementById('zoom-overlay');
+      if (wrap) {
+        const r = wrap.getBoundingClientRect();
+        const cx = Math.min(Math.max(r.left + r.width/2, 0), window.innerWidth);
+        const cy = Math.min(Math.max(r.top + r.height/2, 0), window.innerHeight);
+        ov.style.transition = 'none';
+        ov.style.transformOrigin = cx+'px '+cy+'px';
+        ov.style.transform = 'scale(0.02)';
+        ov.style.opacity = '1';
+        ov.offsetHeight;
+        ov.style.transition = 'transform 0.52s cubic-bezier(0.4,0,0.2,1)';
+        ov.style.transform = 'scale(50)';
+      }
+      ov.classList.add('active');
+      setTimeout(() => window.location.href = href, 500);
+    });
+  });
+
+  // Mobile dots
+  const cT = document.getElementById('cT');
+  const cD = document.getElementById('cD');
+  if (cT) {
+    cT.querySelectorAll('.cs').forEach((_, i) => {
+      const d = document.createElement('div');
+      d.className = 'dot'+(i===0?' active':'');
+      cD.appendChild(d);
+    });
+    cT.addEventListener('scroll', () => {
+      const idx = Math.round(cT.scrollLeft / cT.clientWidth);
+      cD.querySelectorAll('.dot').forEach((d,i) => d.classList.toggle('active', i===idx));
+    });
+  }
+
+  window.addEventListener('pageshow', () => {
+    const ov = document.getElementById('zoom-overlay');
+    ov.style.transition = 'none';
+    ov.style.transform = '';
+    ov.style.opacity = '0';
+    ov.classList.remove('active');
+  });
+</script>
+</body>
+</html>

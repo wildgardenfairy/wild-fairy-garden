@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Faraway Tree</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Beth+Ellen&family=Mynerve&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+<style>
+  .leaf-note { margin-top:28px; text-align:center; font-style:italic; font-size:clamp(13px,1.6vw,16px); color:var(--ink-faint); line-height:1.75; }
+</style>
+</head>
+<body>
+<div id="zoom-overlay"></div>
+
+<a class="return-map" href="index.html">
+  <img src="compass.svg" alt="back to map" onerror="this.style.display='none'">
+  <span class="rm-lbl">back to map</span>
+</a>
+
+<div class="page-wrap">
+  <div class="page-hero">
+    <img src="farawaytree.svg" alt="Faraway Tree" onerror="this.style.display='none'">
+    <h1>faraway tree</h1>
+    <p class="sub">climb up — there are stories in every leaf</p>
+  </div>
+  <div class="ink-divider"></div>
+
+  <p class="body-text" style="text-align:center;max-width:480px;margin:0 auto 24px;">
+    thoughts, musings and little dispatches from the creative life.
+    written slowly, with tea nearby.
+  </p>
+
+  <p class="body-text" style="margin-bottom:8px;">
+    all the writing lives over on
+    <a class="ink-link" href="https://your-name.substack.com" target="_blank" rel="noopener">substack →</a>
+  </p>
+
+  <div class="ink-divider-sm"></div>
+  <p style="font-size:12px;color:var(--ink-faint);font-style:italic;margin-bottom:14px;">recent leaves</p>
+
+  <div class="item-list">
+    <!-- copy this block for each post -->
+    <a class="list-item" href="#" target="_blank" rel="noopener">
+      <span class="li-meta">jan 2025</span>
+      <div><div class="li-title">a title for this piece</div><div class="li-desc">a teaser — one gentle sentence to draw someone further up the tree</div></div>
+    </a>
+    <a class="list-item" href="#" target="_blank" rel="noopener">
+      <span class="li-meta">dec 2024</span>
+      <div><div class="li-title">another title here</div><div class="li-desc">what you wrote about — keep it short, let the title breathe</div></div>
+    </a>
+    <a class="list-item" href="#" target="_blank" rel="noopener">
+      <span class="li-meta">nov 2024</span>
+      <div><div class="li-title">and another</div><div class="li-desc">the beginning of something longer, something that grew into a piece you're proud of</div></div>
+    </a>
+  </div>
+
+  <div class="leaf-note">
+    the tree is tallest in november.<br>come back often — the view changes.
+  </div>
+</div>
+
+<!-- North → Pigeon's Peak -->
+<a class="nav-arrow north" href="about.html">
+  <svg width="32" height="48" viewBox="0 0 32 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs><filter id="f1"><feTurbulence type="turbulence" baseFrequency="0.05" numOctaves="2" seed="2" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2" xChannelSelector="R" yChannelSelector="G"/></filter></defs>
+    <path d="M16 44 C15.5 32, 16.5 18, 16 4" stroke="#2a2118" stroke-width="1.5" stroke-linecap="round" filter="url(#f1)"/>
+    <path d="M7 14 C11 8, 16 3, 25 14" stroke="#2a2118" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" filter="url(#f1)"/>
+  </svg>
+  <span class="arrow-lbl">pigeon's peak</span>
+</a>
+
+<!-- Northeast → Singing Hollow -->
+<a class="nav-arrow northeast" href="videos.html">
+  <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs><filter id="f2"><feTurbulence type="turbulence" baseFrequency="0.05" numOctaves="2" seed="8" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2" xChannelSelector="R" yChannelSelector="G"/></filter></defs>
+    <path d="M5 35 C15 25, 25 15, 35 5" stroke="#2a2118" stroke-width="1.5" stroke-linecap="round" filter="url(#f2)"/>
+    <path d="M21 5 C29 5, 35 5, 35 21" stroke="#2a2118" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" filter="url(#f2)"/>
+  </svg>
+  <span class="arrow-lbl">singing hollow</span>
+</a>
+
+<!-- East → Frog Pond -->
+<a class="nav-arrow east" href="community.html">
+  <svg width="48" height="32" viewBox="0 0 48 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs><filter id="f3"><feTurbulence type="turbulence" baseFrequency="0.05" numOctaves="2" seed="13" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2" xChannelSelector="R" yChannelSelector="G"/></filter></defs>
+    <path d="M4 16 C16 15.5, 28 16.5, 44 16" stroke="#2a2118" stroke-width="1.5" stroke-linecap="round" filter="url(#f3)"/>
+    <path d="M34 7 C40 11, 45 16, 34 25" stroke="#2a2118" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" filter="url(#f3)"/>
+  </svg>
+  <span class="arrow-lbl">frog pond</span>
+</a>
+
+<!-- Southwest → Field of Golden Daffodils -->
+<a class="nav-arrow southwest" href="reviews.html">
+  <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs><filter id="f4"><feTurbulence type="turbulence" baseFrequency="0.05" numOctaves="2" seed="17" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2" xChannelSelector="R" yChannelSelector="G"/></filter></defs>
+    <path d="M35 5 C25 15, 15 25, 5 35" stroke="#2a2118" stroke-width="1.5" stroke-linecap="round" filter="url(#f4)"/>
+    <path d="M5 21 C5 29, 5 35, 19 35" stroke="#2a2118" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" filter="url(#f4)"/>
+  </svg>
+  <span class="arrow-lbl">field of golden daffodils</span>
+</a>
+
+<!-- West → Wishing Well -->
+<a class="nav-arrow west" href="contact.html">
+  <svg width="48" height="32" viewBox="0 0 48 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs><filter id="f5"><feTurbulence type="turbulence" baseFrequency="0.05" numOctaves="2" seed="19" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2" xChannelSelector="R" yChannelSelector="G"/></filter></defs>
+    <path d="M44 16 C32 15.5, 20 16.5, 4 16" stroke="#2a2118" stroke-width="1.5" stroke-linecap="round" filter="url(#f5)"/>
+    <path d="M14 7 C8 11, 3 16, 14 25" stroke="#2a2118" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" filter="url(#f5)"/>
+  </svg>
+  <span class="arrow-lbl">wishing well</span>
+</a>
+
+<script src="nav.js"></script>
+</body>
+</html>

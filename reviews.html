@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Field of Golden Daffodils</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Beth+Ellen&family=Mynerve&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+<style>
+  .review-flow { display:flex; flex-direction:column; }
+  .rb { padding:22px 0 16px; border-bottom:1px solid rgba(181,168,152,0.2); position:relative; }
+  .rb:last-child { border-bottom:none; }
+  .rb:nth-child(odd) .rb-text { margin-left:6px; }
+  .rb-stars { font-size:13px; letter-spacing:3px; color:var(--accent); margin-bottom:8px; }
+  .rb-text  { font-style:italic; font-size:clamp(14px,1.8vw,17px); color:var(--ink-light); line-height:1.82; margin-bottom:10px; }
+  .rb-by    { font-size:12px; color:var(--ink-faint); }
+  .rb-role  { font-style:italic; }
+  .rb-petal { position:absolute; right:4px; top:20px; font-size:16px; opacity:0.3; }
+  .field-cta { margin-top:32px; text-align:center; font-style:italic; font-size:clamp(13px,1.6vw,16px); color:var(--ink-faint); line-height:1.7; }
+</style>
+</head>
+<body>
+<div id="zoom-overlay"></div>
+
+<a class="return-map" href="index.html">
+  <img src="compass.svg" alt="back to map" onerror="this.style.display='none'">
+  <span class="rm-lbl">back to map</span>
+</a>
+
+<div class="page-wrap">
+  <div class="page-hero">
+    <img src="goldenfield.svg" alt="Field of Golden Daffodils" onerror="this.style.display='none'">
+    <h1>field of golden daffodils</h1>
+    <p class="sub">kind words, scattered like flowers in a sun-warm field</p>
+  </div>
+  <div class="ink-divider"></div>
+
+  <div class="review-flow">
+    <!-- copy this block for each review -->
+    <div class="rb">
+      <div class="rb-petal">🌼</div>
+      <div class="rb-stars">★★★★★</div>
+      <div class="rb-text">this is where the actual review goes — something honest, something warm, something real. the kind of words that make a field feel full and golden.</div>
+      <div class="rb-by">— someone's name, <span class="rb-role">how you know them</span></div>
+    </div>
+    <div class="rb">
+      <div class="rb-petal">🌻</div>
+      <div class="rb-stars">★★★★★</div>
+      <div class="rb-text">another real review here. these are the words people leave behind when something has genuinely touched them.</div>
+      <div class="rb-by">— another name, <span class="rb-role">another context</span></div>
+    </div>
+    <div class="rb">
+      <div class="rb-petal">🌷</div>
+      <div class="rb-stars">★★★★★</div>
+      <div class="rb-text">scatter as many as you have — the field should feel alive with genuine appreciation, one flower at a time.</div>
+      <div class="rb-by">— a third person, <span class="rb-role">their context</span></div>
+    </div>
+  </div>
+
+  <div class="field-cta">
+    worked together? I'd love to hear from you —<br>
+    <a class="ink-link" href="contact.html">leave a note at the wishing well →</a>
+  </div>
+</div>
+
+<!-- Northeast → Faraway Tree (field is bottom-left; faraway is center = northeast) -->
+<a class="nav-arrow northeast" href="blog.html">
+  <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs><filter id="f1"><feTurbulence type="turbulence" baseFrequency="0.05" numOctaves="2" seed="4" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2" xChannelSelector="R" yChannelSelector="G"/></filter></defs>
+    <path d="M5 35 C15 25, 25 15, 35 5" stroke="#2a2118" stroke-width="1.5" stroke-linecap="round" filter="url(#f1)"/>
+    <path d="M21 5 C29 5, 35 5, 35 21" stroke="#2a2118" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" filter="url(#f1)"/>
+  </svg>
+  <span class="arrow-lbl">faraway tree</span>
+</a>
+
+<!-- North → Wishing Well (well is directly above on the map) -->
+<a class="nav-arrow north" href="contact.html">
+  <svg width="32" height="48" viewBox="0 0 32 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs><filter id="f2"><feTurbulence type="turbulence" baseFrequency="0.05" numOctaves="2" seed="9" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2" xChannelSelector="R" yChannelSelector="G"/></filter></defs>
+    <path d="M16 44 C15.5 32, 16.5 18, 16 4" stroke="#2a2118" stroke-width="1.5" stroke-linecap="round" filter="url(#f2)"/>
+    <path d="M7 14 C11 8, 16 3, 25 14" stroke="#2a2118" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" filter="url(#f2)"/>
+  </svg>
+  <span class="arrow-lbl">wishing well</span>
+</a>
+
+<script src="nav.js"></script>
+</body>
+</html>

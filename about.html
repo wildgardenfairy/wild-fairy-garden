@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pigeon's Peak</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Beth+Ellen&family=Mynerve&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+<style>
+
+  /* ── HERO IMAGE: seamless, no borders, melts into parchment ── */
+  .peak-img-wrap {
+    display: flex; justify-content: center;
+    margin: 0 auto 8px;
+    /* no background, no shadow — image must have transparent background */
+  }
+  .peak-img-wrap img {
+    width: min(420px, 80vw);
+    height: auto;
+    object-fit: contain;
+    /* no drop-shadow so edges feel truly seamless */
+    animation: hf 6s ease-in-out infinite;
+  }
+  @keyframes hf { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+
+  /* override page-hero default img sizing for this page */
+  .page-hero img { width: auto; height: auto; filter: none; animation: none; }
+
+  /* ── LOOKOUT INTRO ── */
+  .lookout-title {
+    font-family: 'Beth Ellen', cursive;
+    font-size: clamp(28px, 5vw, 48px);
+    text-align: center; margin-bottom: 6px; line-height: 1.1;
+  }
+  .lookout-sub {
+    font-size: clamp(14px, 1.8vw, 17px);
+    color: var(--ink-light); font-style: italic;
+    text-align: center; line-height: 1.65; margin-bottom: 0;
+  }
+
+  /* Beth Ellen for landmark names in the grid too */
+  .place-name {
+    font-family: 'Beth Ellen', cursive;
+    font-size: clamp(15px, 1.8vw, 18px);
+    border-bottom: 1px solid rgba(42,33,24,0.18);
+    padding-bottom: 2px; display: inline-block;
+    transition: border-color 0.2s;
+  }
+  .place-desc {
+    font-size: clamp(12px, 1.4vw, 14px);
+    color: var(--ink-light); line-height: 1.55; font-style: italic;
+  }
+
+  /* ── PERSONAL INTRO SECTION ── */
+  .intro-cols {
+    display: grid; grid-template-columns: 1fr 1.1fr; gap: 40px; align-items: start;
+  }
+  @media(max-width:600px){ .intro-cols{ grid-template-columns:1fr; gap:20px; } }
+
+  /* Photo: transparent-background image melts into parchment */
+  .photo-wrap {
+    display: flex; justify-content: center; align-items: flex-start;
+  }
+  .photo-wrap img {
+    width: 100%; max-width: 280px;
+    height: auto; object-fit: contain;
+    /* no border, no background — seamless with page */
+  }
+  .photo-placeholder {
+    width: 100%; max-width: 280px; aspect-ratio: 3/4;
+    display: flex; align-items: center; justify-content: center;
+    font-style: italic; color: var(--ink-faint); font-size: 13px;
+    text-align: center; padding: 20px;
+    /* very subtle hint of the parchment-dark tone so the empty state is visible */
+    background: rgba(237,229,208,0.4);
+    border-radius: 2px;
+  }
+
+  .intro-text h2 {
+    font-family: 'Beth Ellen', cursive;
+    font-size: clamp(20px, 3vw, 30px); margin-bottom: 14px;
+  }
+  .tag-row { display: flex; flex-wrap: wrap; gap: 0; margin: 14px 0 18px; }
+  .nudge { font-style: italic; font-size: 14px; color: var(--ink-faint); line-height: 1.65; margin-top: 20px; }
+</style>
+</head>
+<body>
+<div id="zoom-overlay"></div>
+
+<!-- Return to map: compass top-left -->
+<a class="return-map" href="index.html">
+  <img src="compass.svg" alt="back to map" onerror="this.style.display='none'">
+  <span class="rm-lbl">back to map</span>
+</a>
+
+<div class="page-wrap">
+
+  <!-- ── PEAK IMAGE + TITLE ── -->
+  <div class="peak-img-wrap">
+    <!--
+      Upload your Pigeon's Peak image with a transparent background.
+      Name it pigeonspeak.svg (or pigeonspeak.png) and drop it in the same folder.
+      The image will melt seamlessly into the parchment background.
+    -->
+    <img src="pigeonspeak.svg" alt="Pigeon's Peak" onerror="this.style.display='none'">
+  </div>
+
+  <h1 class="lookout-title">pigeon's peak</h1>
+  <p class="lookout-sub">a lookout over the wild fairy garden</p>
+
+  <div class="ink-divider"></div>
+
+  <!-- ── OVERVIEW COPY ── -->
+  <p class="body-text" style="text-align:center; max-width:520px; margin: 0 auto 12px;">
+    from up here, you can see everything. the wild fairy garden stretches out below —
+    a place made of music, words, and the kind of quiet that only forests know.
+    each landmark holds something different. wander wherever calls to you.
+  </p>
+  <p class="body-text" style="text-align:center; max-width:480px; margin: 0 auto 0;">
+    this is [your name]'s corner of the world. artist, musician, storyteller —
+    and whatever else the season calls for.
+  </p>
+
+  <div class="ink-divider"></div>
+
+  <!-- ── PERSONAL INTRO ── -->
+  <div class="intro-cols">
+    <div class="photo-wrap">
+      <!--
+        Upload your photo with a transparent background (PNG or SVG).
+        It will melt into the parchment seamlessly — no border, no frame.
+        Name it something like your-photo.png and update the src below.
+      -->
+      <img src="your-photo.png" alt="[your name]"
+           onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+      <div class="photo-placeholder" style="display:none">
+        your photo here<br><br>
+        upload with a transparent background<br>
+        and it will melt into the page ☁️
+      </div>
+    </div>
+
+    <div class="intro-text">
+      <h2>hello, I'm [your name]</h2>
+      <p class="body-text">
+        a few wandering words about who you are — musician, storyteller,
+        creature of the woods. write in your own voice here.
+      </p>
+      <div class="ink-quote">
+        your artistic statement — something honest, something that smells like
+        pine needles and morning fog
+      </div>
+      <div class="tag-row">
+        <span class="tag">musician</span>
+        <span class="tag">storyteller</span>
+        <span class="tag">creature of the woods</span>
+      </div>
+      <p class="nudge">
+        want to work together?
+        <a class="ink-link" href="contact.html">find me at the wishing well →</a>
+      </p>
+    </div>
+  </div>
+
+</div><!-- /page-wrap -->
+
+<!-- ═══ NAV ARROWS ═══
+  From Pigeon's Peak (top of map):
+  bottom-left  → wishing well
+  bottom-centre → faraway tree
+  bottom-right → singing hollow
+-->
+
+<!-- Southwest: Wishing Well -->
+<a class="nav-arrow southwest" href="contact.html">
+  <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs><filter id="fa"><feTurbulence type="turbulence" baseFrequency="0.05" numOctaves="2" seed="3" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2" xChannelSelector="R" yChannelSelector="G"/></filter></defs>
+    <path d="M35 5 C25 15, 15 25, 5 35" stroke="#2a2118" stroke-width="1.6" stroke-linecap="round" filter="url(#fa)"/>
+    <path d="M5 21 C5 29, 5 35, 19 35" stroke="#2a2118" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" filter="url(#fa)"/>
+  </svg>
+  <span class="arrow-lbl">wishing well</span>
+</a>
+
+<!-- South: Faraway Tree -->
+<a class="nav-arrow south" href="blog.html">
+  <svg width="32" height="48" viewBox="0 0 32 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs><filter id="fb"><feTurbulence type="turbulence" baseFrequency="0.05" numOctaves="2" seed="7" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2" xChannelSelector="R" yChannelSelector="G"/></filter></defs>
+    <path d="M16 4 C15.5 16, 16.5 30, 16 44" stroke="#2a2118" stroke-width="1.6" stroke-linecap="round" filter="url(#fb)"/>
+    <path d="M7 34 C11 40, 16 45, 25 34" stroke="#2a2118" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" filter="url(#fb)"/>
+  </svg>
+  <span class="arrow-lbl">faraway tree</span>
+</a>
+
+<!-- Southeast: Singing Hollow -->
+<a class="nav-arrow southeast" href="videos.html">
+  <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs><filter id="fc"><feTurbulence type="turbulence" baseFrequency="0.05" numOctaves="2" seed="11" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2" xChannelSelector="R" yChannelSelector="G"/></filter></defs>
+    <path d="M5 5 C15 15, 25 25, 35 35" stroke="#2a2118" stroke-width="1.6" stroke-linecap="round" filter="url(#fc)"/>
+    <path d="M35 21 C35 29, 35 35, 21 35" stroke="#2a2118" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" filter="url(#fc)"/>
+  </svg>
+  <span class="arrow-lbl">singing hollow</span>
+</a>
+
+<script src="nav.js"></script>
+</body>
+</html>

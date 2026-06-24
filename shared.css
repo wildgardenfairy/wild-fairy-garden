@@ -1,0 +1,317 @@
+/* Wild Fairy Garden — shared inner page styles */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --ink: #2a2118;
+  --ink-light: #5a4f43;
+  --ink-faint: #9a8e82;
+  --parchment: #f5f0e8;
+  --parchment-dark: #ede5d0;
+  --dashed: #b5a898;
+  --accent: #c4956a;
+}
+
+html { scroll-behavior: smooth; }
+body {
+  background: var(--parchment);
+  /* Mynerve for all body copy */
+  font-family: 'Mynerve', cursive;
+  color: var(--ink);
+  min-height: 100vh;
+  position: relative;
+}
+body::after {
+  content: ''; position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.026'/%3E%3C/svg%3E");
+  pointer-events: none; z-index: 0;
+}
+
+/* ── PAGE WRAP ──
+   Bottom padding is large enough that scrolled content
+   never slides under the bottom nav arrows                ── */
+.page-wrap {
+  position: relative; z-index: 1;
+  max-width: 700px;
+  margin: 0 auto;
+  /* top: clear of return-map compass (≈60px)
+     sides: clear of east/west arrows (≈70px each)
+     bottom: clear of bottom arrows (≈100px)             */
+  padding: 80px 80px 120px;
+  animation: pageIn 0.65s ease both;
+}
+@keyframes pageIn {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── PAGE HERO ── */
+.page-hero {
+  display: flex; flex-direction: column; align-items: center;
+  text-align: center; margin-bottom: 36px; gap: 10px;
+}
+.page-hero img {
+  width: min(155px, 35vw); height: min(155px, 35vw); object-fit: contain;
+  filter: drop-shadow(0 5px 13px rgba(42,33,24,0.12));
+  animation: hf 5s ease-in-out infinite;
+}
+@keyframes hf { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+
+/* Landmark name headings keep Beth Ellen */
+.page-hero h1 {
+  font-family: 'Beth Ellen', cursive;
+  font-size: clamp(26px, 4.5vw, 42px); line-height: 1.1;
+}
+.page-hero .sub {
+  font-size: clamp(14px, 1.8vw, 17px); color: var(--ink-light);
+  font-style: italic; max-width: 460px; line-height: 1.6;
+}
+
+/* ── WAVY INK DIVIDER ── */
+.ink-divider {
+  width: 100%; height: 16px; margin: 28px 0;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 16'%3E%3Cpath d='M0 8 C30 4,60 12,90 8 C120 4,150 12,180 8 C210 4,240 12,270 8 C300 4,330 12,360 8 C390 4,420 12,450 8 C480 4,510 12,540 8 C570 4,590 10,600 8' stroke='%23b5a898' stroke-width='1.3' fill='none' opacity='0.6'/%3E%3C/svg%3E") no-repeat center / 100% 100%;
+}
+.ink-divider-sm {
+  width: 55%; height: 12px; margin: 20px auto;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 360 12'%3E%3Cpath d='M0 6 C22 3,44 9,66 6 C88 3,110 9,132 6 C154 3,176 9,198 6 C220 3,242 9,264 6 C286 3,308 9,330 6 C345 4,356 7,360 6' stroke='%23b5a898' stroke-width='1.1' fill='none' opacity='0.5'/%3E%3C/svg%3E") no-repeat center / 100% 100%;
+}
+
+/* ── TEXT ── */
+.body-text {
+  font-size: clamp(15px, 1.8vw, 18px);
+  line-height: 1.9; color: var(--ink-light); margin-bottom: 18px;
+}
+.ink-quote {
+  padding: 0 0 0 20px; margin: 24px 0;
+  border-left: 2px solid rgba(196,149,106,0.45);
+  font-style: italic; font-size: clamp(15px, 1.8vw, 19px);
+  color: var(--ink-light); line-height: 1.8;
+}
+.tag {
+  display: inline-block; font-size: 12px; padding: 2px 10px;
+  border-bottom: 1px solid rgba(42,33,24,0.18);
+  color: var(--ink-light); margin: 2px 3px 2px 0;
+}
+.ink-link {
+  display: inline-block; text-decoration: none; color: var(--ink);
+  border-bottom: 1.5px solid rgba(42,33,24,0.35); padding-bottom: 1px;
+  font-size: clamp(14px, 1.7vw, 17px);
+  transition: border-color 0.2s;
+}
+.ink-link:hover { border-color: var(--ink); }
+
+/* ── PLATFORM ROW ── */
+.platform-row { display: flex; flex-wrap: wrap; gap: 12px; margin: 14px 0; }
+.platform-item {
+  display: flex; align-items: center; gap: 9px;
+  text-decoration: none; color: var(--ink);
+  font-size: clamp(13px, 1.6vw, 16px);
+  border-bottom: 1px solid rgba(42,33,24,0.16); padding-bottom: 1px;
+  transition: border-color 0.2s;
+}
+.platform-item:hover { border-color: var(--ink); }
+.platform-item .pi  { font-size: 20px; flex-shrink: 0; }
+
+/* ── LIST ── */
+.item-list { display: flex; flex-direction: column; }
+.list-item {
+  display: flex; gap: 14px; align-items: baseline;
+  padding: 13px 0; border-bottom: 1px solid rgba(181,168,152,0.28);
+  text-decoration: none; color: var(--ink);
+  transition: padding-left 0.18s;
+}
+.list-item:hover { padding-left: 5px; }
+.list-item:last-child { border-bottom: none; }
+.li-meta  { font-size: 12px; color: var(--ink-faint); flex-shrink: 0; width: 68px; padding-top: 2px; font-style: italic; }
+.li-title { font-size: clamp(14px, 1.7vw, 17px); margin-bottom: 2px; }
+.li-desc  { font-size: clamp(12px, 1.4vw, 14px); color: var(--ink-light); font-style: italic; line-height: 1.4; }
+.li-dur   { margin-left: auto; font-size: 12px; color: var(--ink-faint); font-style: italic; flex-shrink: 0; }
+
+/* ── REVIEWS ── */
+.review-flow { display: flex; flex-direction: column; }
+.review-block {
+  padding: 24px 0 18px; border-bottom: 1px solid rgba(181,168,152,0.2);
+  position: relative;
+}
+.review-block:last-child { border-bottom: none; }
+.rb-stars { font-size: 14px; letter-spacing: 3px; color: var(--accent); margin-bottom: 9px; }
+.rb-text  { font-style: italic; font-size: clamp(14px, 1.8vw, 17px); color: var(--ink-light); line-height: 1.82; margin-bottom: 11px; }
+.rb-by    { font-size: 12px; color: var(--ink-faint); }
+.rb-petal { position: absolute; right: 6px; top: 22px; font-size: 18px; opacity: 0.35; }
+
+/* ── VIDEO GRID ── */
+.video-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px,1fr)); gap: 24px; margin-top: 6px; }
+.video-thumb {
+  aspect-ratio: 16/9; background: var(--parchment-dark);
+  border-radius: 4px; overflow: hidden; position: relative;
+  display: flex; align-items: center; justify-content: center;
+  font-style: italic; color: var(--ink-faint); font-size: 14px; margin-bottom: 9px;
+}
+.video-thumb iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: none; }
+.video-title { font-size: clamp(14px,1.6vw,16px); margin-bottom: 3px; }
+.video-desc  { font-size: 12px; color: var(--ink-light); font-style: italic; }
+
+/* ── CATEGORY TABS ── */
+.tab-row { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 22px; }
+.tab {
+  font-family: 'Mynerve', cursive; font-size: 13px; padding: 3px 12px;
+  background: none; border: none; border-bottom: 1.5px solid rgba(42,33,24,0.18);
+  color: var(--ink-light); cursor: pointer; transition: border-color 0.2s, color 0.2s;
+}
+.tab.active, .tab:hover { color: var(--ink); border-color: var(--ink); }
+
+/* ── FORM ── */
+.form-field { display: flex; flex-direction: column; gap: 3px; margin-bottom: 18px; }
+.form-field label { font-size: 13px; color: var(--ink-light); }
+.form-field input, .form-field textarea, .form-field select {
+  background: transparent; border: none;
+  border-bottom: 1.5px solid rgba(42,33,24,0.22); border-radius: 0;
+  padding: 7px 2px; font-family: 'Mynerve', cursive;
+  font-size: 15px; color: var(--ink); outline: none;
+  transition: border-color 0.2s; resize: none;
+}
+.form-field input:focus, .form-field textarea:focus, .form-field select:focus { border-color: var(--ink); }
+.form-field textarea { min-height: 90px; }
+.form-field select { appearance: none; cursor: pointer; }
+.submit-btn {
+  background: none; border: none; border-bottom: 1.5px solid var(--ink);
+  font-family: 'Mynerve', cursive; font-size: 16px; color: var(--ink);
+  padding: 5px 2px; cursor: pointer;
+  transition: letter-spacing 0.2s;
+}
+.submit-btn:hover { letter-spacing: 0.06em; }
+
+/* ── SOCIAL LIST ── */
+.social-list { display: flex; flex-direction: column; gap: 13px; }
+.social-item {
+  display: flex; align-items: center; gap: 11px;
+  text-decoration: none; color: var(--ink); font-size: clamp(13px,1.6vw,16px);
+}
+.social-item .si-i { font-size: 18px; flex-shrink: 0; }
+.social-item .si-n { border-bottom: 1px solid rgba(42,33,24,0.18); padding-bottom: 1px; transition: border-color 0.2s; }
+.social-item:hover .si-n { border-color: var(--ink); }
+.social-item .si-h { font-size: 12px; color: var(--ink-faint); font-style: italic; margin-left: 3px; }
+
+/* ── SUCCESS ── */
+.success-msg { display: none; font-style: italic; font-size: 17px; color: var(--ink-light); margin-top: 16px; line-height: 1.7; }
+
+
+/* ── BOTTOM NAV BAR — full-width parchment strip behind bottom arrows ── */
+body::before {
+  content: '';
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  height: 0px;          /* tall enough to cover all bottom arrows */
+  background: var(--parchment);
+  z-index: 80;           /* above page content, below the arrows (z-index 81) */
+  pointer-events: none;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   DIRECTIONAL NAV ARROWS
+   All arrows are position:fixed so they never scroll with content
+   and never overlap the page text at any scroll position.
+   ═══════════════════════════════════════════════════════════════ */
+
+.nav-arrow {
+  position: fixed;   /* fixed = always in viewport corner, never scrolls */
+  z-index: 81;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  text-decoration: none; color: var(--ink);
+  opacity: 1;                         /* always fully opaque */
+  transition: transform 0.22s;        /* no opacity transition */
+  cursor: pointer;
+  white-space: nowrap;
+}
+.nav-arrow:hover { opacity: 1; }     /* stays 1 on hover too */
+.nav-arrow svg { display: block; flex-shrink: 0; }
+
+/* Arrow labels use Mynerve like body copy */
+.arrow-lbl {
+  font-family: 'Mynerve', cursive;
+  font-size: clamp(10px, 1.1vw, 12px);
+  text-align: center; line-height: 1.3;
+}
+
+/* ── BOTTOM ROW: southwest / south / southeast
+   These are the most common — sit above the viewport bottom edge  ── */
+.nav-arrow.southwest {
+  bottom: 28px; left: 28px;
+  flex-direction: column-reverse; align-items: flex-start;
+}
+.nav-arrow.southwest:hover { transform: translate(-3px, 3px); }
+
+.nav-arrow.south {
+  bottom: 28px; left: 50%; transform: translateX(-50%);
+  flex-direction: column-reverse;
+}
+.nav-arrow.south:hover { transform: translateX(-50%) translateY(4px); }
+
+.nav-arrow.southeast {
+  bottom: 28px; right: 28px;
+  flex-direction: column-reverse; align-items: flex-end;
+}
+.nav-arrow.southeast:hover { transform: translate(3px, 3px); }
+
+/* ── TOP ROW ── */
+.nav-arrow.northwest {
+  top: 80px; left: 28px;   /* offset below return-map compass */
+  flex-direction: column; align-items: flex-start;
+}
+.nav-arrow.northwest:hover { transform: translate(-3px, -3px); }
+
+.nav-arrow.north {
+  top: 16px; left: 50%; transform: translateX(-50%);
+  flex-direction: column;
+}
+.nav-arrow.north:hover { transform: translateX(-50%) translateY(-4px); }
+
+.nav-arrow.northeast {
+  top: 22px; right: 22px;
+  flex-direction: column; align-items: flex-end;
+}
+.nav-arrow.northeast:hover { transform: translate(3px, -3px); }
+
+/* ── SIDES ── */
+.nav-arrow.west {
+  left: 16px; top: 50%; transform: translateY(-50%);
+  flex-direction: row-reverse; gap: 7px;
+}
+.nav-arrow.west:hover { transform: translateY(-50%) translateX(-4px); }
+
+.nav-arrow.east {
+  right: 16px; top: 50%; transform: translateY(-50%);
+  flex-direction: row; gap: 7px;
+}
+.nav-arrow.east:hover { transform: translateY(-50%) translateX(4px); }
+
+/* ── RETURN TO MAP (compass icon, top-left) ── */
+.return-map {
+  position: fixed; top: 20px; left: 20px; z-index: 90;
+  display: flex; align-items: center; gap: 7px;
+  text-decoration: none; color: var(--ink);
+  font-size: clamp(10px,1.1vw,12px); opacity: 0.65;
+  transition: opacity 0.2s, transform 0.22s;
+}
+.return-map:hover { opacity: 1; transform: rotate(-10deg); }
+.return-map img { width: 34px; height: 34px; filter: drop-shadow(0 1px 3px rgba(42,33,24,0.13)); }
+.return-map .rm-lbl { font-family: 'Mynerve', cursive; font-size: 11px; color: var(--ink-light); }
+
+/* ── ZOOM OVERLAY ── */
+#zoom-overlay {
+  position: fixed; inset: 0; background: var(--parchment);
+  z-index: 999; opacity: 0; pointer-events: none; transition: opacity 0.5s ease;
+}
+#zoom-overlay.active { opacity: 1; pointer-events: all; }
+
+@media (max-width: 600px) {
+  .page-wrap { padding: 70px 20px 110px; }
+  .nav-arrow.east      { right: 8px; }
+  .nav-arrow.west      { left: 8px; }
+  .nav-arrow.north     { top: 10px; }
+  .nav-arrow.south     { bottom: 16px; }
+  .nav-arrow.northeast { top: 14px; right: 14px; }
+  .nav-arrow.southeast { bottom: 16px; right: 14px; }
+  .nav-arrow.southwest { bottom: 16px; left: 14px; }
+  .nav-arrow.northwest { top: 72px; left: 14px; }
+}

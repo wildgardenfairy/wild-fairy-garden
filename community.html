@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Frog Pond</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Beth+Ellen&family=Mynerve&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+<style>
+  .pond-links { display:flex; flex-direction:column; gap:24px; margin-top:6px; }
+  .plink { display:flex; align-items:flex-start; gap:16px; text-decoration:none; color:var(--ink); }
+  .plink-icon { font-size:28px; flex-shrink:0; margin-top:2px; }
+  .plink-name { font-size:clamp(16px,1.9vw,19px); margin-bottom:3px; }
+  .plink-desc { font-size:clamp(12px,1.5vw,15px); color:var(--ink-light); font-style:italic; line-height:1.55; }
+  .plink-go   { font-size:12px; color:var(--ink-faint); margin-top:5px; border-bottom:1px solid rgba(42,33,24,0.18); display:inline-block; padding-bottom:1px; transition:border-color 0.2s; }
+  .plink:hover .plink-go { border-color:var(--ink); color:var(--ink); }
+  .ripple { margin-top:32px; font-style:italic; font-size:clamp(13px,1.6vw,16px); color:var(--ink-faint); line-height:1.75; text-align:center; }
+</style>
+</head>
+<body>
+<div id="zoom-overlay"></div>
+
+<a class="return-map" href="index.html">
+  <img src="compass.svg" alt="back to map" onerror="this.style.display='none'">
+  <span class="rm-lbl">back to map</span>
+</a>
+
+<div class="page-wrap">
+  <div class="page-hero">
+    <img src="frogpond.svg" alt="Frog Pond" onerror="this.style.display='none'">
+    <h1>frog pond</h1>
+    <p class="sub">a soft and mossy gathering place — all frogs welcome</p>
+  </div>
+  <div class="ink-divider"></div>
+
+  <p class="body-text" style="text-align:center;max-width:470px;margin:0 auto 28px;">
+    come find me where the lily pads float. whether you prefer lurking quietly
+    or leaping right in, there's a lily pad with your name on it.
+  </p>
+
+  <div class="pond-links">
+    <a class="plink" href="https://discord.gg/YOUR_INVITE" target="_blank" rel="noopener">
+      <span class="plink-icon">🎮</span>
+      <div>
+        <div class="plink-name">discord</div>
+        <div class="plink-desc">the main gathering — chat, share things, be a little chaotic together</div>
+        <span class="plink-go">hop in →</span>
+      </div>
+    </a>
+    <a class="plink" href="https://t.me/YOUR_CHANNEL" target="_blank" rel="noopener">
+      <span class="plink-icon">✉️</span>
+      <div>
+        <div class="plink-name">telegram</div>
+        <div class="plink-desc">quieter updates, behind-the-scenes bits, little notes from the woods</div>
+        <span class="plink-go">follow along →</span>
+      </div>
+    </a>
+    <a class="plink" href="https://instagram.com/YOUR_HANDLE" target="_blank" rel="noopener">
+      <span class="plink-icon">🌿</span>
+      <div>
+        <div class="plink-name">instagram</div>
+        <div class="plink-desc">visual snippets — photos, reels, the occasional blurry frog sighting</div>
+        <span class="plink-go">come look →</span>
+      </div>
+    </a>
+  </div>
+
+  <div class="ripple">
+    the pond is happiest when it's full of creatures.<br>
+    come say hello — I would genuinely like to meet you.
+  </div>
+</div>
+
+<!-- West → Faraway Tree -->
+<a class="nav-arrow west" href="blog.html">
+  <svg width="48" height="32" viewBox="0 0 48 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs><filter id="f1"><feTurbulence type="turbulence" baseFrequency="0.05" numOctaves="2" seed="22" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2" xChannelSelector="R" yChannelSelector="G"/></filter></defs>
+    <path d="M44 16 C32 15.5, 20 16.5, 4 16" stroke="#2a2118" stroke-width="1.5" stroke-linecap="round" filter="url(#f1)"/>
+    <path d="M14 7 C8 11, 3 16, 14 25" stroke="#2a2118" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" filter="url(#f1)"/>
+  </svg>
+  <span class="arrow-lbl">faraway tree</span>
+</a>
+
+<!-- Northwest → Singing Hollow -->
+<a class="nav-arrow northwest" href="videos.html">
+  <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs><filter id="f2"><feTurbulence type="turbulence" baseFrequency="0.05" numOctaves="2" seed="6" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2" xChannelSelector="R" yChannelSelector="G"/></filter></defs>
+    <path d="M35 35 C25 25, 15 15, 5 5" stroke="#2a2118" stroke-width="1.5" stroke-linecap="round" filter="url(#f2)"/>
+    <path d="M5 19 C5 11, 5 5, 19 5" stroke="#2a2118" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" filter="url(#f2)"/>
+  </svg>
+  <span class="arrow-lbl">singing hollow</span>
+</a>
+
+<script src="nav.js"></script>
+</body>
+</html>

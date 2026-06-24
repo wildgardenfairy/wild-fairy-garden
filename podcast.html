@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sleepy Pots — Podcast</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Beth+Ellen&family=Mynerve&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+<style>
+  .platform-row { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:16px; margin-bottom:44px; }
+  .platform-card {
+    display:flex; align-items:center; gap:14px;
+    padding:18px 20px; background:rgba(255,255,255,0.45);
+    border:1.5px solid rgba(42,33,24,0.1); border-radius:13px;
+    text-decoration:none; color:var(--ink);
+    transition:transform 0.22s ease, box-shadow 0.22s ease;
+  }
+  .platform-card:hover { transform:translateY(-4px); box-shadow:0 8px 22px rgba(42,33,24,0.1); }
+  .p-icon { font-size:30px; flex-shrink:0; }
+  .p-name { font-size:20px; font-weight:600; }
+  .p-sub  { font-family:'Crimson Pro',serif; font-size:14px; color:var(--ink-faint); }
+
+  .player-shell {
+    background:rgba(255,255,255,0.4); border:1.5px solid rgba(42,33,24,0.1);
+    border-radius:16px; overflow:hidden; margin-bottom:44px; min-height:160px;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Crimson Pro',serif; font-style:italic; color:var(--ink-faint); font-size:17px;
+  }
+  .player-shell iframe { width:100%; border:none; display:block; }
+
+  .ep-list { display:flex; flex-direction:column; gap:14px; }
+  .ep-row {
+    display:flex; gap:16px; padding:18px 22px;
+    background:rgba(255,255,255,0.4); border:1.5px solid rgba(42,33,24,0.09); border-radius:12px;
+    text-decoration:none; color:var(--ink); align-items:center;
+    transition:transform 0.2s, box-shadow 0.2s;
+  }
+  .ep-row:hover { transform:translateX(6px); box-shadow:0 4px 14px rgba(42,33,24,0.08); }
+  .ep-num   { font-size:26px; font-weight:700; color:var(--dashed); flex-shrink:0; width:44px; text-align:center; }
+  .ep-info h3 { font-size:20px; margin-bottom:3px; }
+  .ep-info p  { font-family:'Crimson Pro',serif; font-size:15px; color:var(--ink-light); line-height:1.45; }
+  .ep-dur   { margin-left:auto; font-size:15px; color:var(--ink-faint); flex-shrink:0; font-family:'Crimson Pro',serif; }
+
+  .slumber-note {
+    margin-top:44px; text-align:center; padding:24px;
+    font-family:'Crimson Pro',serif; font-style:italic;
+    font-size:clamp(16px,1.9vw,19px); color:var(--ink-light); line-height:1.7;
+    background:rgba(196,149,106,0.07);
+    border:1.5px dashed rgba(196,149,106,0.3); border-radius:14px;
+  }
+</style>
+</head>
+<body>
+<div id="zoom-overlay"></div>
+
+<div class="page-wrap">
+  <div class="page-hero">
+    <img src="sleepypots.svg" alt="Sleepy Pots" onerror="this.style.display='none'">
+    <h1>sleepy pots</h1>
+    <p class="subtitle">slow conversations, brewed like tea — pour a cup and settle in</p>
+  </div>
+
+  <div class="squiggle-divider"><span>✦ find it here ✦</span></div>
+
+  <div class="platform-row">
+    <!-- update hrefs to your actual links -->
+    <a class="platform-card" href="https://open.spotify.com/show/YOUR_ID" target="_blank" rel="noopener">
+      <div class="p-icon">🎵</div>
+      <div><div class="p-name">spotify</div><div class="p-sub">stream episodes</div></div>
+    </a>
+    <a class="platform-card" href="https://youtube.com/@YOUR_CHANNEL" target="_blank" rel="noopener">
+      <div class="p-icon">▶️</div>
+      <div><div class="p-name">youtube</div><div class="p-sub">watch & listen</div></div>
+    </a>
+    <a class="platform-card" href="https://podcasts.apple.com/podcast/YOUR_ID" target="_blank" rel="noopener">
+      <div class="p-icon">🎙️</div>
+      <div><div class="p-name">apple podcasts</div><div class="p-sub">subscribe</div></div>
+    </a>
+  </div>
+
+  <!-- Optional embedded player — uncomment and paste your Spotify embed code:
+  <div class="player-shell">
+    <iframe src="https://open.spotify.com/embed/episode/YOUR_EPISODE_ID" height="232"
+            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture">
+    </iframe>
+  </div>
+  -->
+
+  <div class="squiggle-divider"><span>✦ episodes ✦</span></div>
+
+  <div class="ep-list">
+    <!-- copy this block for each episode, update href to the actual link -->
+    <a class="ep-row" href="#" target="_blank" rel="noopener">
+      <div class="ep-num">01</div>
+      <div class="ep-info">
+        <h3>episode title here</h3>
+        <p>what this one was about — a gentle, curious description</p>
+      </div>
+      <div class="ep-dur">42 min</div>
+    </a>
+    <a class="ep-row" href="#" target="_blank" rel="noopener">
+      <div class="ep-num">02</div>
+      <div class="ep-info">
+        <h3>another episode</h3>
+        <p>who you talked to, what surfaced, what surprised you</p>
+      </div>
+      <div class="ep-dur">38 min</div>
+    </a>
+    <a class="ep-row" href="#" target="_blank" rel="noopener">
+      <div class="ep-num">03</div>
+      <div class="ep-info">
+        <h3>a third one</h3>
+        <p>keep descriptions warm and inviting — make people want to listen</p>
+      </div>
+      <div class="ep-dur">55 min</div>
+    </a>
+  </div>
+
+  <div class="slumber-note">
+    "the pots are on. there's always more steeping.<br>come back whenever you need something slow."
+  </div>
+</div>
+
+<!-- COMPASS NAV
+  Sleepy Pots (bottom-left) connects to:
+  top   → Wishing Well (contact) — path goes up along the left side
+  right → Frog Pond (community) — path connects at the bottom
+  No left or bottom connections
+-->
+<nav class="compass-nav" aria-label="Navigate to nearby landmarks">
+  <a class="compass-btn compass-top" href="contact.html" title="wishing well · contact">
+    <span class="arrow">↑</span>
+    <span class="dest">wishing well</span>
+  </a>
+  <a class="compass-btn compass-right" href="community.html" title="frog pond · community">
+    <span class="arrow">→</span>
+    <span class="dest">frog pond</span>
+  </a>
+  <div class="compass-center">✦</div>
+  <div class="compass-btn empty compass-left"></div>
+  <div class="compass-btn empty compass-bottom"></div>
+</nav>
+
+<a class="return-map" href="index.html">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+  back to map
+</a>
+
+<script src="nav.js"></script>
+</body>
+</html>

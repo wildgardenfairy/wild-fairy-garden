@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wishing Well</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Beth+Ellen&family=Mynerve&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+<style>
+  .contact-cols { display:grid; grid-template-columns:1fr 1.2fr; gap:44px; align-items:start; }
+  @media(max-width:620px){ .contact-cols{ grid-template-columns:1fr; gap:24px; } }
+  .well-note { margin-bottom:24px; font-style:italic; font-size:13px; color:var(--ink-faint); line-height:1.65; }
+</style>
+</head>
+<body>
+<div id="zoom-overlay"></div>
+
+<a class="return-map" href="index.html">
+  <img src="compass.svg" alt="back to map" onerror="this.style.display='none'">
+  <span class="rm-lbl">back to map</span>
+</a>
+
+<div class="page-wrap">
+  <div class="page-hero">
+    <img src="wishingwell.svg" alt="Wishing Well" onerror="this.style.display='none'">
+    <h1>wishing well</h1>
+    <p class="sub">drop a note down the well — every wish finds its way to me</p>
+  </div>
+  <div class="ink-divider"></div>
+
+  <div class="contact-cols">
+    <div>
+      <p style="font-size:12px;color:var(--ink-faint);font-style:italic;margin-bottom:16px;">find me out there</p>
+      <div class="social-list">
+        <a class="social-item" href="mailto:you@example.com">
+          <span class="si-i">✉️</span>
+          <div><span class="si-n">email</span><span class="si-h">you@example.com</span></div>
+        </a>
+        <a class="social-item" href="https://instagram.com/YOUR_HANDLE" target="_blank" rel="noopener">
+          <span class="si-i">🌿</span>
+          <div><span class="si-n">instagram</span><span class="si-h">@yourhandle</span></div>
+        </a>
+        <a class="social-item" href="https://youtube.com/@YOUR_CHANNEL" target="_blank" rel="noopener">
+          <span class="si-i">▶️</span>
+          <div><span class="si-n">youtube</span><span class="si-h">@yourchannel</span></div>
+        </a>
+        <a class="social-item" href="https://open.spotify.com/artist/YOUR_ID" target="_blank" rel="noopener">
+          <span class="si-i">🎵</span>
+          <div><span class="si-n">spotify</span><span class="si-h">your name</span></div>
+        </a>
+      </div>
+      <div class="ink-divider-sm"></div>
+      <div class="well-note">
+        want to work together?<br>
+        <a class="ink-link" href="https://calendly.com/YOUR_LINK" target="_blank" rel="noopener">book a call →</a>
+      </div>
+    </div>
+
+    <div>
+      <p style="font-size:12px;color:var(--ink-faint);font-style:italic;margin-bottom:18px;">send a note</p>
+      <!--
+        TO MAKE THIS FORM SEND:
+        1. formspree.io → create account → new form
+        2. Replace YOUR_FORM_ID below
+        3. Remove the onsubmit attribute
+      -->
+      <form id="cf" onsubmit="hs(event)" method="POST" action="https://formspree.io/f/YOUR_FORM_ID">
+        <div class="form-field">
+          <label for="nm">your name</label>
+          <input type="text" id="nm" name="name" placeholder="what shall I call you?" required>
+        </div>
+        <div class="form-field">
+          <label for="em">your email</label>
+          <input type="email" id="em" name="email" placeholder="where can I write back?" required>
+        </div>
+        <div class="form-field">
+          <label for="sb">what's this about?</label>
+          <select id="sb" name="subject">
+            <option value="">choose one...</option>
+            <option>a collaboration</option>
+            <option>booking or events</option>
+            <option>just saying hello</option>
+            <option>press or media</option>
+            <option>something else entirely</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label for="mg">your message</label>
+          <textarea id="mg" name="message" placeholder="say anything — I read every single note." required></textarea>
+        </div>
+        <button type="submit" class="submit-btn">send it down the well</button>
+      </form>
+      <div class="success-msg" id="sm">
+        ✦ your message arrived safely ✦<br>
+        I'll write back soon — probably with tea in hand.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- East → Faraway Tree (well is center-left; faraway is to the east) -->
+<a class="nav-arrow east" href="blog.html">
+  <svg width="48" height="32" viewBox="0 0 48 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs><filter id="f1"><feTurbulence type="turbulence" baseFrequency="0.05" numOctaves="2" seed="9" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2" xChannelSelector="R" yChannelSelector="G"/></filter></defs>
+    <path d="M4 16 C16 15.5, 28 16.5, 44 16" stroke="#2a2118" stroke-width="1.5" stroke-linecap="round" filter="url(#f1)"/>
+    <path d="M34 7 C40 11, 45 16, 34 25" stroke="#2a2118" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" filter="url(#f1)"/>
+  </svg>
+  <span class="arrow-lbl">faraway tree</span>
+</a>
+
+<!-- South → Field of Golden Daffodils (field is below-left of well) -->
+<a class="nav-arrow south" href="reviews.html">
+  <svg width="32" height="48" viewBox="0 0 32 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs><filter id="f2"><feTurbulence type="turbulence" baseFrequency="0.05" numOctaves="2" seed="16" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2" xChannelSelector="R" yChannelSelector="G"/></filter></defs>
+    <path d="M16 4 C15.5 16, 16.5 28, 16 44" stroke="#2a2118" stroke-width="1.5" stroke-linecap="round" filter="url(#f2)"/>
+    <path d="M7 34 C11 40, 16 45, 25 34" stroke="#2a2118" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" filter="url(#f2)"/>
+  </svg>
+  <span class="arrow-lbl">field of golden daffodils</span>
+</a>
+
+<script>
+  function hs(e){
+    e.preventDefault();
+    document.getElementById('cf').style.display='none';
+    document.getElementById('sm').style.display='block';
+  }
+</script>
+<script src="nav.js"></script>
+</body>
+</html>

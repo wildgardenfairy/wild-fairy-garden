@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Singing Hollow</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Beth+Ellen&family=Mynerve&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+</head>
+<body>
+<div id="zoom-overlay"></div>
+
+<a class="return-map" href="index.html">
+  <img src="compass.svg" alt="back to map" onerror="this.style.display='none'">
+  <span class="rm-lbl">back to map</span>
+</a>
+
+<div class="page-wrap">
+  <div class="page-hero">
+    <img src="singinghollow.svg" alt="Singing Hollow" onerror="this.style.display='none'">
+    <h1>singing hollow</h1>
+    <p class="sub">every note echoes through the pines here</p>
+  </div>
+  <div class="ink-divider"></div>
+
+  <div class="tab-row">
+    <button class="tab active" onclick="fv(this,'all')">all of them</button>
+    <button class="tab" onclick="fv(this,'performance')">performances</button>
+    <button class="tab" onclick="fv(this,'covers')">covers</button>
+    <button class="tab" onclick="fv(this,'originals')">originals</button>
+  </div>
+
+  <div class="video-grid" id="vg">
+    <!-- copy this block for each video — swap VIDEO_ID in the iframe src -->
+    <div class="video-item" data-c="performance">
+      <div class="video-thumb">
+        <!-- <iframe src="https://www.youtube.com/embed/VIDEO_ID" allowfullscreen loading="lazy"></iframe> -->
+        <span>video one</span>
+      </div>
+      <div class="video-title">a title for this one</div>
+      <div class="video-desc">something about this performance — loose and honest</div>
+    </div>
+    <div class="video-item" data-c="covers">
+      <div class="video-thumb">
+        <!-- <iframe src="https://www.youtube.com/embed/VIDEO_ID" allowfullscreen loading="lazy"></iframe> -->
+        <span>video two</span>
+      </div>
+      <div class="video-title">another one</div>
+      <div class="video-desc">whose song, what it means to you</div>
+    </div>
+    <div class="video-item" data-c="originals">
+      <div class="video-thumb">
+        <!-- <iframe src="https://www.youtube.com/embed/VIDEO_ID" allowfullscreen loading="lazy"></iframe> -->
+        <span>video three</span>
+      </div>
+      <div class="video-title">an original</div>
+      <div class="video-desc">entirely yours — something grown in the hollow</div>
+    </div>
+  </div>
+</div>
+
+<!-- Northwest → Pigeon's Peak (singing hollow is top-right; peak is top-center = northwest) -->
+<a class="nav-arrow northwest" href="about.html">
+  <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs><filter id="f1"><feTurbulence type="turbulence" baseFrequency="0.05" numOctaves="2" seed="2" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2" xChannelSelector="R" yChannelSelector="G"/></filter></defs>
+    <path d="M34 34 C24 24, 14 14, 5 5" stroke="#2a2118" stroke-width="1.5" stroke-linecap="round" filter="url(#f1)"/>
+    <path d="M5 19 C5 11, 5 5, 19 5" stroke="#2a2118" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" filter="url(#f1)"/>
+  </svg>
+  <span class="arrow-lbl">pigeon's peak</span>
+</a>
+
+<!-- Southwest → Faraway Tree -->
+<a class="nav-arrow southwest" href="blog.html">
+  <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs><filter id="f2"><feTurbulence type="turbulence" baseFrequency="0.05" numOctaves="2" seed="11" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2" xChannelSelector="R" yChannelSelector="G"/></filter></defs>
+    <path d="M34 6 C24 16, 14 26, 5 35" stroke="#2a2118" stroke-width="1.5" stroke-linecap="round" filter="url(#f2)"/>
+    <path d="M5 21 C5 29, 5 35, 19 35" stroke="#2a2118" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" filter="url(#f2)"/>
+  </svg>
+  <span class="arrow-lbl">faraway tree</span>
+</a>
+
+<!-- West → Frog Pond (frog pond is center, singing hollow is right — frog is to the west) -->
+<a class="nav-arrow west" href="community.html">
+  <svg width="48" height="32" viewBox="0 0 48 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs><filter id="f3"><feTurbulence type="turbulence" baseFrequency="0.05" numOctaves="2" seed="15" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2" xChannelSelector="R" yChannelSelector="G"/></filter></defs>
+    <path d="M44 16 C32 15.5, 20 16.5, 4 16" stroke="#2a2118" stroke-width="1.5" stroke-linecap="round" filter="url(#f3)"/>
+    <path d="M14 7 C8 11, 3 16, 14 25" stroke="#2a2118" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" filter="url(#f3)"/>
+  </svg>
+  <span class="arrow-lbl">frog pond</span>
+</a>
+
+<script>
+  function fv(btn,cat){
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.video-item').forEach(v=>{
+      v.style.display=(cat==='all'||v.dataset.c===cat)?'':'none';
+    });
+  }
+</script>
+<script src="nav.js"></script>
+</body>
+</html>
