@@ -122,6 +122,31 @@ body::after {
               rgba(245,240,232,0) 100%);
 }
 
+/* ── CLOUD BANKS ──
+   Pinned to the top and bottom edges. JS slides them in (and fades them)
+   as you zoom out past the framed view, so the map is engulfed in mist;
+   zooming back in dissipates them. The inner .cloud-fill carries the art
+   so the outer element is free to slide. ── */
+.cloud-bank {
+  position: fixed;
+  left: 0; right: 0;
+  height: 82vh;
+  z-index: 30;
+  pointer-events: none;
+  opacity: 0;
+  transition: transform 0.5s ease, opacity 0.5s ease;
+  will-change: transform, opacity;
+}
+#cloud-top    { top: 0;    transform: translateY(-100%); }
+#cloud-bottom { bottom: 0; transform: translateY(100%); }
+.cloud-fill {
+  position: absolute; inset: 0;
+  /* the cloud field fills the whole bank, so the page reads as packed
+     clouds (not a band) when fully zoomed out */
+  background: url("clouds.svg") repeat-x bottom / auto 100%;
+}
+#cloud-bottom .cloud-fill { transform: scaleY(-1); }
+
 /* ── LANDMARKS ── */
 .landmark {
   position: absolute;
@@ -262,6 +287,10 @@ body::after {
   </div>
 </div>
 
+<!-- CLOUD BANKS: roll in from top & bottom as you zoom out -->
+<div class="cloud-bank" id="cloud-top"><div class="cloud-fill"></div></div>
+<div class="cloud-bank" id="cloud-bottom"><div class="cloud-fill"></div></div>
+
 <div id="map-stage">
   <div id="map-inner">
 
@@ -347,6 +376,7 @@ body::after {
   // behaves identically on every browser and device.
   const ZOOM_STEP = 1.35;        // button / double-click zoom factor
   const MAX_ZOOM_MULT = 5;       // how far past "fit" you can zoom in
+  const MIN_ZOOM_OUT = 0.5;      // how far you can zoom out past the frame (into the clouds)
   const FIT_MARGIN = 0.92;       // leave a little breathing room when framed
 
   // CONTENT = bounds of the actual artwork. Used only to frame the
@@ -371,10 +401,12 @@ body::after {
   const stage = document.getElementById('map-stage');
   const inner = document.getElementById('map-inner');
   const hint  = document.getElementById('map-hint');
+  const cloudTop = document.getElementById('cloud-top');
+  const cloudBottom = document.getElementById('cloud-bottom');
 
   // View state: world point (0,0) sits at screen (tx,ty); 1 world px = scale screen px.
   let scale = 1, tx = 0, ty = 0;
-  let minScale = 1, maxScale = 1;
+  let minScale = 1, maxScale = 1, frameScale = 1;
 
   function fitScale() {
     return Math.min(window.innerWidth / CONTENT_W, window.innerHeight / CONTENT_H) * FIT_MARGIN;
@@ -396,6 +428,23 @@ body::after {
 
   function apply() {
     inner.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
+    updateClouds();
+  }
+
+  // Clouds roll in from the top & bottom as you zoom out past the framed
+  // view (scale → minScale), and dissipate as you zoom back in (→ frameScale).
+  function updateClouds() {
+    let f = (frameScale - scale) / (frameScale - minScale);
+    f = Math.max(0, Math.min(1, f));
+    const e = f * f * (3 - 2 * f);                 // smoothstep for a softer ramp
+    if (cloudTop) {
+      cloudTop.style.transform = `translateY(${(e - 1) * 100}%)`;
+      cloudTop.style.opacity = e;
+    }
+    if (cloudBottom) {
+      cloudBottom.style.transform = `translateY(${(1 - e) * 100}%)`;
+      cloudBottom.style.opacity = e;
+    }
   }
 
   // Zoom by `factor` while keeping the screen point (px,py) anchored.
@@ -410,7 +459,7 @@ body::after {
   }
 
   function resetView() {
-    scale = minScale;
+    scale = frameScale;        // open at the framed overview, above the cloud zone
     // Centre the artwork in the viewport (not the wide padded world).
     tx = window.innerWidth / 2 - CONTENT_CX * scale;
     ty = window.innerHeight / 2 - CONTENT_CY * scale;
@@ -419,9 +468,9 @@ body::after {
   }
 
   function recomputeBounds(keepView) {
-    const fit = fitScale();
-    minScale = fit;
-    maxScale = fit * MAX_ZOOM_MULT;
+    frameScale = fitScale();          // the framed overview
+    minScale = frameScale * MIN_ZOOM_OUT;   // you can zoom out below it into the clouds
+    maxScale = frameScale * MAX_ZOOM_MULT;
     if (keepView) {
       scale = Math.min(maxScale, Math.max(minScale, scale));
       clampTranslate();
