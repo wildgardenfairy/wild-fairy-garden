@@ -27,15 +27,12 @@ body::after {
 }
 
 /* ── PAGE WRAP ──
-   Bottom padding is large enough that scrolled content
-   never slides under the bottom nav arrows                ── */
+   max-width shrinks on narrower viewports so content never
+   overlaps the fixed side-arrows (which need ~60px each side). ── */
 .page-wrap {
   position: relative; z-index: 1;
-  max-width: 700px;
+  width: min(700px, calc(100vw - 120px));
   margin: 0 auto;
-  /* top: clear of return-map compass (≈60px)
-     sides: clear of east/west arrows (≈70px each)
-     bottom: clear of bottom arrows (≈100px)             */
   padding: 80px 80px 120px;
   animation: pageIn 0.65s ease both;
 }
@@ -304,14 +301,65 @@ body::before {
 }
 #zoom-overlay.active { opacity: 1; pointer-events: all; }
 
-@media (max-width: 600px) {
-  .page-wrap { padding: 70px 20px 110px; }
-  .nav-arrow.east      { right: 8px; }
-  .nav-arrow.west      { left: 8px; }
-  .nav-arrow.north     { top: 10px; }
-  .nav-arrow.south     { bottom: 16px; }
-  .nav-arrow.northeast { top: 14px; right: 14px; }
-  .nav-arrow.southeast { bottom: 16px; right: 14px; }
-  .nav-arrow.southwest { bottom: 16px; left: 14px; }
-  .nav-arrow.northwest { top: 72px; left: 14px; }
+/* ── TABLET (≤860px) ──
+   Tighten internal padding so content isn't too narrow
+   once the page-wrap starts shrinking with the viewport. ── */
+@media (max-width: 860px) {
+  .page-wrap { padding: 80px 48px 120px; }
 }
+
+/* ── MOBILE (≤640px) ──
+   Replace scattered directional arrows with a bottom nav bar.
+   Everything else collapses to a clean single-column layout. ── */
+@media (max-width: 640px) {
+  /* Full-width, minimal padding — bottom cleared for nav bar */
+  .page-wrap {
+    width: 100%;
+    padding: 70px 22px 90px;
+  }
+
+  /* Hide directional arrows — users navigate via the bottom bar */
+  .nav-arrow { display: none; }
+
+  /* Return-map compass always visible on mobile */
+  .return-map { opacity: 1; }
+
+  /* Smaller hero image */
+  .page-hero img { width: min(110px, 28vw); height: min(110px, 28vw); }
+
+  /* Videos stack single column */
+  .video-grid { grid-template-columns: 1fr; }
+
+  /* ── MOBILE BOTTOM NAV BAR ── */
+  .mob-bottom-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: var(--parchment);
+    border-top: 1px solid rgba(181,168,152,0.3);
+    /* respect iPhone home-bar */
+    padding: 6px 0 max(env(safe-area-inset-bottom), 6px);
+    z-index: 85;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .mob-bottom-nav::-webkit-scrollbar { display: none; }
+}
+
+/* Bottom nav hidden on desktop — JS always injects it */
+.mob-bottom-nav { display: none; }
+
+.mob-nav-item {
+  flex: 1;
+  min-width: 48px;
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 5px 6px;
+  text-decoration: none;
+  color: var(--ink-faint);
+  font-family: 'Mynerve', cursive;
+  transition: color 0.15s;
+}
+.mob-nav-item.active { color: var(--ink); }
+.mob-nav-item:hover  { color: var(--ink); }
+.mn-icon { font-size: 17px; line-height: 1; }
+.mn-lbl  { font-size: 9px; white-space: nowrap; }
