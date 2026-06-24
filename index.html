@@ -28,24 +28,33 @@ body::after {
   pointer-events: none; z-index: 200;
 }
 
-/* ── OUTER STAGE: fills viewport, centres the inner canvas ── */
+/* ── OUTER STAGE: the viewport / gesture surface ──
+   Fills the screen, clips overflow, and captures pan + zoom
+   gestures. Same behaviour on every device. ── */
 #map-stage {
   position: fixed;
   inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  overflow: hidden;
+  cursor: grab;
+  touch-action: none;          /* we handle all touch gestures in JS */
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
+#map-stage.grabbing { cursor: grabbing; }
 
-/* ── INNER CANVAS: fixed reference size 1440×900
-   JS scales the whole thing as one unit so map + landmarks
-   always move together perfectly ── */
+/* ── INNER CANVAS: fixed reference world 1440×900
+   JS applies translate + scale (origin 0,0) to pan/zoom the
+   whole thing as one unit, so map + landmarks always move
+   together perfectly. ── */
 #map-inner {
-  position: relative;
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 1440px;
   height: 900px;
-  flex-shrink: 0;
-  transform-origin: center center;
+  transform-origin: 0 0;
+  will-change: transform;
 }
 
 /* ── MAP BACKGROUND ──
@@ -64,16 +73,53 @@ body::after {
   pointer-events: none;
 }
 
-/* ── COMPASS + WELCOME ── */
+/* ── COMPASS + WELCOME ──
+   Pinned to the screen (not the map) so it stays put while panning. ── */
 .map-header {
-  position: absolute; top: 20px; left: -110px; z-index: 30;
-  display: flex; flex-direction: column; gap: 1px;
+  position: fixed;
+  top: max(14px, env(safe-area-inset-top));
+  left: max(16px, env(safe-area-inset-left));
+  z-index: 40;
+  display: flex; flex-direction: column; align-items: center; gap: 1px;
+  pointer-events: none;          /* never blocks a pan that starts on it */
 }
-.compass-img { width: 170px; height: 170px; opacity: 1; }
+.compass-img {
+  width: 150px; height: 150px; opacity: 1;
+  pointer-events: auto;          /* the compass itself is clickable */
+  cursor: pointer;
+  transition: transform 0.4s ease, filter 0.3s ease;
+}
+.compass-img:hover {
+  transform: rotate(7deg) scale(1.04);
+  filter: drop-shadow(0 4px 10px rgba(42,33,24,0.18));
+}
+.compass-img:active { transform: rotate(7deg) scale(0.97); }
+.compass-img:focus-visible {
+  outline: 2px solid var(--ink-light); outline-offset: 4px; border-radius: 8px;
+}
 .welcome-text {
   font-size: 14px;
-  color: var(--ink-light); line-height: 1.6; opacity: 0.85;
-  white-space: nowrap; /* single line */
+  color: var(--ink-light); line-height: 1.45; opacity: 0.85;
+  white-space: nowrap;       /* lines are set explicitly with <br> */
+  text-align: center;
+  text-shadow: 0 0 10px var(--parchment), 0 0 18px var(--parchment);
+}
+
+/* ── COMPASS FADE ──
+   A soft parchment glow centred on the compass + welcome text, radiating
+   out in every direction so they stay readable above the map. It's only
+   translucent in the middle, so the map still shows faintly through. */
+#top-fade {
+  position: fixed;
+  top: 0; left: 0;
+  width: min(460px, 88vw);
+  height: 340px;
+  z-index: 35;
+  pointer-events: none;
+  background: radial-gradient(190px 175px at 96px 122px,
+              rgba(245,240,232,0.82) 0%,
+              rgba(245,240,232,0.58) 48%,
+              rgba(245,240,232,0) 100%);
 }
 
 /* ── LANDMARKS ── */
@@ -86,13 +132,18 @@ body::after {
   animation: lmIn 0.7s ease both;
 }
 .lm-img-wrap {
-  transition: transform 0.3s cubic-bezier(.34,1.56,.64,1), filter 0.3s ease;
-  filter: drop-shadow(0 2px 5px rgba(42,33,24,0.1));
+  /* Transform-only hover (lift + grow). The drop-shadow is constant —
+     animating the filter forces the layer to re-rasterise every frame,
+     which flickered when zoomed out (tiny layer, large shadow blur).
+     will-change keeps each landmark on its own GPU layer so the scale
+     doesn't re-rasterise the whole map texture (the old blur→sharp pop). */
+  transition: transform 0.3s cubic-bezier(.34,1.56,.64,1);
+  filter: drop-shadow(0 3px 8px rgba(42,33,24,0.16));
   display: flex; align-items: flex-end; justify-content: center;
+  will-change: transform;
 }
 .landmark:hover .lm-img-wrap {
   transform: translateY(-6px) scale(1.07);
-  filter: drop-shadow(0 8px 18px rgba(42,33,24,0.24));
 }
 .lm-img { object-fit: contain; display: block; }
 .lm-fallback { display: none; align-items: center; justify-content: center; font-size: 38px; }
@@ -138,50 +189,83 @@ body::after {
 }
 #zoom-overlay.active { opacity: 1; pointer-events: all; }
 
-/* ── MOBILE ── */
-@media (max-width: 768px) { #map-stage { display: none; } #mob { display: flex; } }
-#mob {
-  display: none; flex-direction: column;
-  width: 100vw; height: 100vh; background: var(--parchment);
+/* ── ZOOM CONTROLS (work on every device) ── */
+#map-controls {
+  position: fixed;
+  right: max(16px, env(safe-area-inset-right));
+  bottom: max(16px, env(safe-area-inset-bottom));
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
-.mob-h { padding: 28px 24px 10px; flex-shrink: 0; }
-.mob-h h1 { font-size: 26px; }
-.mob-h p  { font-size: 13px; color: var(--ink-light); margin-top: 4px; }
-.ct {
-  display: flex; flex: 1; overflow-x: scroll;
-  scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; scrollbar-width: none;
+.map-btn {
+  width: 44px; height: 44px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--parchment);
+  border: 1.5px solid var(--dashed);
+  border-radius: 12px;
+  color: var(--ink);
+  font-family: 'Beth Ellen', cursive;
+  font-size: 24px; line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(42,33,24,0.12);
+  transition: transform 0.15s ease, background 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
-.ct::-webkit-scrollbar { display: none; }
-.cs {
-  scroll-snap-align: start; flex: 0 0 100vw; height: 100%;
-  display: flex; flex-direction: column; align-items: center;
-  justify-content: center; gap: 14px;
-  text-decoration: none; color: var(--ink); padding: 20px; cursor: pointer;
+.map-btn:hover { background: var(--parchment-dark); }
+.map-btn:active { transform: scale(0.92); }
+.map-btn svg { width: 20px; height: 20px; }
+
+/* ── HINT ── */
+#map-hint {
+  position: fixed;
+  left: 50%; bottom: max(18px, env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  z-index: 40;
+  font-size: 13px; color: var(--ink-light); opacity: 0.7;
+  white-space: nowrap; pointer-events: none;
+  text-shadow: 0 0 12px var(--parchment), 0 0 20px var(--parchment);
+  transition: opacity 0.6s ease;
 }
-.cs img { width: min(50vw,190px); height: min(50vw,190px); object-fit: contain; filter: drop-shadow(0 4px 10px rgba(42,33,24,0.13)); animation: fl 4s ease-in-out infinite; }
-.cs:nth-child(even) img { animation-delay: -2s; }
-.cs .sn { font-size: 22px; } .cs .ss { font-size: 13px; color: var(--ink-light); }
-.dots { display: flex; justify-content: center; gap: 7px; padding: 14px; flex-shrink: 0; }
-.dot  { width: 6px; height: 6px; border-radius: 50%; background: var(--dashed); transition: background 0.3s, transform 0.3s; }
-.dot.active { background: var(--ink); transform: scale(1.4); }
-@keyframes fl { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+#map-hint.hidden { opacity: 0; }
+
+@media (max-width: 600px) {
+  .compass-img { width: 104px; height: 104px; }
+  .welcome-text { font-size: 11px; }
+  #top-fade {
+    width: min(300px, 90vw); height: 290px;
+    background: radial-gradient(150px 162px at 66px 100px,
+                rgba(245,240,232,0.82) 0%,
+                rgba(245,240,232,0.58) 48%,
+                rgba(245,240,232,0) 100%);
+  }
+  #map-hint { font-size: 12px; left: 20px; transform: none; }
+  #map-hint .hint-more { display: none; }
+}
 </style>
 </head>
 <body>
 <div id="zoom-overlay"></div>
 
+<!-- Parchment glow that keeps the compass legible over the map -->
+<div id="top-fade"></div>
+
+<!-- COMPASS: pinned to the screen, outside the pannable map -->
+<div class="map-header">
+  <img class="compass-img" src="compass.svg" alt="Recenter map"
+       role="button" tabindex="0" title="Recenter map"
+       onerror="this.style.display='none'">
+  <div class="welcome-text">
+    welcome to the<br>wild fairy garden<br>click to explore
+  </div>
+</div>
+
 <div id="map-stage">
   <div id="map-inner">
 
     <img id="map-bg" src="map.svg" alt="">
-
-    <div class="map-header">
-      <img class="compass-img" src="compass.svg" alt="compass"
-           onerror="this.style.display='none'">
-      <div class="welcome-text">
-        welcome to the wild fairy garden. click to explore
-      </div>
-    </div>
 
     <a class="landmark" id="lm-pigeon" href="about.html" aria-label="Pigeon's Peak">
       <div class="lm-img-wrap">
@@ -240,76 +324,269 @@ body::after {
   </div><!-- /map-inner -->
 </div><!-- /map-stage -->
 
-<!-- MOBILE -->
-<div id="mob">
-  <div class="mob-h"><h1>wild fairy garden</h1><p>swipe to wander ✦</p></div>
-  <div class="ct" id="cT">
-    <a class="cs" href="about.html"><img src="pigeonspeak.svg" alt="" onerror="this.style.display='none'"><div class="sn">pigeon's peak</div><div class="ss">home · about</div></a>
-    <a class="cs" href="videos.html"><img src="singinghollow.svg" alt="" onerror="this.style.display='none'"><div class="sn">singing hollow</div><div class="ss">videos</div></a>
-    <a class="cs" href="blog.html"><img src="farawaytree.svg" alt="" onerror="this.style.display='none'"><div class="sn">faraway tree</div><div class="ss">blog</div></a>
-    <a class="cs" href="contact.html"><img src="wishingwell.svg" alt="" onerror="this.style.display='none'"><div class="sn">wishing well</div><div class="ss">contact</div></a>
-    <a class="cs" href="community.html"><img src="frogpond.svg" alt="" onerror="this.style.display='none'"><div class="sn">frog pond</div><div class="ss">community</div></a>
-    <a class="cs" href="reviews.html"><img src="goldenfield.svg" alt="" onerror="this.style.display='none'"><div class="sn">field of golden daffodils</div><div class="ss">reviews</div></a>
-  </div>
-  <div class="dots" id="cD"></div>
+<!-- ZOOM CONTROLS -->
+<div id="map-controls">
+  <button class="map-btn" id="btn-zoom-in" aria-label="Zoom in">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+  </button>
+  <button class="map-btn" id="btn-zoom-out" aria-label="Zoom out">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+  </button>
+  <button class="map-btn" id="btn-zoom-reset" aria-label="Reset view">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 9 3 3 9 3"/><polyline points="21 9 21 3 15 3"/><polyline points="3 15 3 21 9 21"/><polyline points="21 15 21 21 15 21"/></svg>
+  </button>
 </div>
 
-<script>
-  // ── UNIFIED SCALING ─────────────────────────────────────────────
-  // #map-inner is designed at 1440×900. JS scales it to fit the
-  // window so the map background and all landmarks move as one unit.
-  const BASE_W = 1440;
-  const BASE_H = 900;
+<div id="map-hint">drag to explore<span class="hint-more"> · scroll or pinch to zoom</span></div>
 
-  function scaleMap() {
-    const inner = document.getElementById('map-inner');
-    if (!inner) return;
-    const scale = Math.min(window.innerWidth / BASE_W, window.innerHeight / BASE_H);
-    inner.style.transform = `scale(${scale})`;
+<script>
+  // ── UNIFIED PAN / ZOOM MAP ──────────────────────────────────────
+  // #map-inner is a fixed 1440×900 "world". We apply a single
+  // translate+scale transform (origin 0,0) to it. The exact same
+  // gesture engine drives mouse, trackpad, and touch — so the map
+  // behaves identically on every browser and device.
+  const ZOOM_STEP = 1.35;        // button / double-click zoom factor
+  const MAX_ZOOM_MULT = 5;       // how far past "fit" you can zoom in
+  const FIT_MARGIN = 0.92;       // leave a little breathing room when framed
+
+  // CONTENT = bounds of the actual artwork. Used only to frame the
+  // opening view so all the landmarks are visible and centred.
+  const CONTENT = { x0: -40, y0: -20, x1: 1560, y1: 880 };
+  const CONTENT_W = CONTENT.x1 - CONTENT.x0;
+  const CONTENT_H = CONTENT.y1 - CONTENT.y0;
+  const CONTENT_CX = (CONTENT.x0 + CONTENT.x1) / 2;
+  const CONTENT_CY = (CONTENT.y0 + CONTENT.y1) / 2;
+
+  // WORLD = the full pannable extent: the artwork plus a wide parchment
+  // margin on every side, so the map feels big and open — you can roam
+  // well past the landmarks in any direction instead of hitting an edge.
+  const PAD_X = 400, PAD_Y = 1300;
+  const WORLD = {
+    x0: CONTENT.x0 - PAD_X, y0: CONTENT.y0 - PAD_Y,
+    x1: CONTENT.x1 + PAD_X, y1: CONTENT.y1 + PAD_Y
+  };
+  const WORLD_W = WORLD.x1 - WORLD.x0;
+  const WORLD_H = WORLD.y1 - WORLD.y0;
+
+  const stage = document.getElementById('map-stage');
+  const inner = document.getElementById('map-inner');
+  const hint  = document.getElementById('map-hint');
+
+  // View state: world point (0,0) sits at screen (tx,ty); 1 world px = scale screen px.
+  let scale = 1, tx = 0, ty = 0;
+  let minScale = 1, maxScale = 1;
+
+  function fitScale() {
+    return Math.min(window.innerWidth / CONTENT_W, window.innerHeight / CONTENT_H) * FIT_MARGIN;
   }
 
-  scaleMap();
-  window.addEventListener('resize', scaleMap);
-  // ────────────────────────────────────────────────────────────────
+  // Keep the content box from drifting off-screen. If it's smaller than
+  // the viewport along an axis, it's centred; otherwise it's edge-clamped.
+  function clampTranslate() {
+    const w = window.innerWidth, h = window.innerHeight;
+    const boxW = WORLD_W * scale, boxH = WORLD_H * scale;
+    // Screen position of the content box's top-left = tx + WORLD.x0*scale.
+    const minTx = w - boxW - WORLD.x0 * scale;   // box right edge at viewport right
+    const maxTx = -WORLD.x0 * scale;             // box left edge at viewport left
+    const minTy = h - boxH - WORLD.y0 * scale;
+    const maxTy = -WORLD.y0 * scale;
+    tx = boxW <= w ? (minTx + maxTx) / 2 : Math.min(maxTx, Math.max(minTx, tx));
+    ty = boxH <= h ? (minTy + maxTy) / 2 : Math.min(maxTy, Math.max(minTy, ty));
+  }
 
-  // Zoom transition
-  document.querySelectorAll('.landmark, .cs').forEach(link => {
-    link.addEventListener('click', function(e) {
-      e.preventDefault();
-      const href = this.getAttribute('href');
-      const wrap = this.querySelector('.lm-img-wrap') || this.querySelector('img');
-      const ov = document.getElementById('zoom-overlay');
-      if (wrap) {
-        const r = wrap.getBoundingClientRect();
-        const cx = Math.min(Math.max(r.left + r.width/2, 0), window.innerWidth);
-        const cy = Math.min(Math.max(r.top + r.height/2, 0), window.innerHeight);
-        ov.style.transition = 'none';
-        ov.style.transformOrigin = cx+'px '+cy+'px';
-        ov.style.transform = 'scale(0.02)';
-        ov.style.opacity = '1';
-        ov.offsetHeight;
-        ov.style.transition = 'transform 0.52s cubic-bezier(0.4,0,0.2,1)';
-        ov.style.transform = 'scale(50)';
-      }
-      ov.classList.add('active');
-      setTimeout(() => window.location.href = href, 500);
-    });
+  function apply() {
+    inner.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
+  }
+
+  // Zoom by `factor` while keeping the screen point (px,py) anchored.
+  function zoomAt(px, py, factor) {
+    const next = Math.min(maxScale, Math.max(minScale, scale * factor));
+    if (next === scale) return;
+    tx = px - (px - tx) * (next / scale);
+    ty = py - (py - ty) * (next / scale);
+    scale = next;
+    clampTranslate();
+    apply();
+  }
+
+  function resetView() {
+    scale = minScale;
+    // Centre the artwork in the viewport (not the wide padded world).
+    tx = window.innerWidth / 2 - CONTENT_CX * scale;
+    ty = window.innerHeight / 2 - CONTENT_CY * scale;
+    clampTranslate();
+    apply();
+  }
+
+  function recomputeBounds(keepView) {
+    const fit = fitScale();
+    minScale = fit;
+    maxScale = fit * MAX_ZOOM_MULT;
+    if (keepView) {
+      scale = Math.min(maxScale, Math.max(minScale, scale));
+      clampTranslate();
+      apply();
+    } else {
+      resetView();
+    }
+  }
+
+  recomputeBounds(false);
+  window.addEventListener('resize', () => recomputeBounds(true));
+
+  // ── Gesture engine (Pointer Events: unifies mouse + touch + pen) ──
+  const pointers = new Map();    // pointerId -> {x, y}
+  let downX = 0, downY = 0, moved = false, multiTouch = false, pinchPrev = null;
+  const TAP_SLOP = 8;            // px of movement still counts as a tap
+
+  function pointsState() {
+    const pts = [...pointers.values()];
+    if (pts.length < 2) return null;
+    const [a, b] = pts;
+    return {
+      dist: Math.hypot(a.x - b.x, a.y - b.y),
+      midX: (a.x + b.x) / 2,
+      midY: (a.y + b.y) / 2
+    };
+  }
+
+  function hideHint() {
+    if (hint && !hint.classList.contains('hidden')) hint.classList.add('hidden');
+  }
+
+  stage.addEventListener('pointerdown', (e) => {
+    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    try { stage.setPointerCapture(e.pointerId); } catch (_) {}
+    stage.classList.add('grabbing');
+    if (pointers.size === 1) {
+      downX = e.clientX; downY = e.clientY; moved = false; multiTouch = false;
+    } else if (pointers.size === 2) {
+      multiTouch = true;
+      pinchPrev = pointsState();
+    }
   });
 
-  // Mobile dots
-  const cT = document.getElementById('cT');
-  const cD = document.getElementById('cD');
-  if (cT) {
-    cT.querySelectorAll('.cs').forEach((_, i) => {
-      const d = document.createElement('div');
-      d.className = 'dot'+(i===0?' active':'');
-      cD.appendChild(d);
-    });
-    cT.addEventListener('scroll', () => {
-      const idx = Math.round(cT.scrollLeft / cT.clientWidth);
-      cD.querySelectorAll('.dot').forEach((d,i) => d.classList.toggle('active', i===idx));
+  stage.addEventListener('pointermove', (e) => {
+    const p = pointers.get(e.pointerId);
+    if (!p) return;
+    const prevX = p.x, prevY = p.y;
+    p.x = e.clientX; p.y = e.clientY;
+
+    if (pointers.size >= 2) {
+      // Pinch: zoom about the midpoint and follow the fingers.
+      const cur = pointsState();
+      if (pinchPrev && cur && pinchPrev.dist > 0) {
+        zoomAt(cur.midX, cur.midY, cur.dist / pinchPrev.dist);
+        tx += cur.midX - pinchPrev.midX;
+        ty += cur.midY - pinchPrev.midY;
+        clampTranslate();
+        apply();
+      }
+      pinchPrev = cur;
+      moved = true;
+      hideHint();
+      return;
+    }
+
+    // Single pointer: pan.
+    tx += e.clientX - prevX;
+    ty += e.clientY - prevY;
+    clampTranslate();
+    apply();
+    if (Math.hypot(e.clientX - downX, e.clientY - downY) > TAP_SLOP) {
+      moved = true;
+      hideHint();
+    }
+  });
+
+  // Fire the zoom-out transition, then go to the landmark's page.
+  function navigateTo(link) {
+    const href = link.getAttribute('href');
+    const wrap = link.querySelector('.lm-img-wrap');
+    const ov = document.getElementById('zoom-overlay');
+    if (wrap) {
+      const r = wrap.getBoundingClientRect();
+      const cx = Math.min(Math.max(r.left + r.width/2, 0), window.innerWidth);
+      const cy = Math.min(Math.max(r.top + r.height/2, 0), window.innerHeight);
+      ov.style.transition = 'none';
+      ov.style.transformOrigin = cx+'px '+cy+'px';
+      ov.style.transform = 'scale(0.02)';
+      ov.style.opacity = '1';
+      ov.offsetHeight;
+      ov.style.transition = 'transform 0.52s cubic-bezier(0.4,0,0.2,1)';
+      ov.style.transform = 'scale(50)';
+    }
+    ov.classList.add('active');
+    setTimeout(() => window.location.href = href, 500);
+  }
+
+  function endPointer(e) {
+    if (!pointers.has(e.pointerId)) return;
+    const wasSingle = pointers.size === 1;
+    pointers.delete(e.pointerId);
+    if (pointers.size < 2) pinchPrev = null;
+    if (pointers.size === 0) {
+      stage.classList.remove('grabbing');
+      // A clean tap (no drag, no pinch) on a landmark navigates. We detect
+      // it here rather than with a click listener because the pointer
+      // capture used for smooth panning retargets the click event to the
+      // stage — so the landmark's own click would never fire.
+      if (wasSingle && !moved && !multiTouch) {
+        const el = document.elementFromPoint(e.clientX, e.clientY);
+        const lm = el && el.closest('.landmark');
+        if (lm) navigateTo(lm);
+      }
+    }
+  }
+  stage.addEventListener('pointerup', endPointer);
+  stage.addEventListener('pointercancel', endPointer);
+
+  // Wheel / trackpad zoom, anchored at the cursor.
+  stage.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    hideHint();
+    const factor = Math.exp(-e.deltaY * 0.0015);
+    zoomAt(e.clientX, e.clientY, factor);
+  }, { passive: false });
+
+  // Double-click on empty map zooms in toward the point (not on landmarks,
+  // which navigate on a single tap).
+  stage.addEventListener('dblclick', (e) => {
+    if (e.target.closest('.landmark')) return;
+    hideHint();
+    zoomAt(e.clientX, e.clientY, ZOOM_STEP * 1.4);
+  });
+
+  // Animated recenter: ease the map back to the framed overview.
+  function smoothReset() {
+    hideHint();
+    inner.style.transition = 'transform 0.55s cubic-bezier(0.4,0,0.2,1)';
+    resetView();
+    setTimeout(() => { inner.style.transition = ''; }, 600);
+  }
+
+  // ── Control buttons ──
+  const centerX = () => window.innerWidth / 2;
+  const centerY = () => window.innerHeight / 2;
+  document.getElementById('btn-zoom-in').onclick  = () => { hideHint(); zoomAt(centerX(), centerY(), ZOOM_STEP); };
+  document.getElementById('btn-zoom-out').onclick = () => { hideHint(); zoomAt(centerX(), centerY(), 1 / ZOOM_STEP); };
+  document.getElementById('btn-zoom-reset').onclick = smoothReset;
+
+  // ── Compass: click (or keyboard) to recenter the map ──
+  const compass = document.querySelector('.compass-img');
+  if (compass) {
+    compass.addEventListener('click', smoothReset);
+    compass.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); smoothReset(); }
     });
   }
+
+  // Suppress the native link + image-drag; navigation is driven by the tap
+  // detection in endPointer above.
+  document.querySelectorAll('.landmark').forEach(link => {
+    link.addEventListener('click', e => e.preventDefault());
+    link.addEventListener('dragstart', e => e.preventDefault());
+  });
 
   window.addEventListener('pageshow', () => {
     const ov = document.getElementById('zoom-overlay');
