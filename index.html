@@ -122,30 +122,26 @@ body::after {
               rgba(245,240,232,0) 100%);
 }
 
-/* ── CLOUD BANKS ──
-   Pinned to the top and bottom edges. JS slides them in (and fades them)
-   as you zoom out past the framed view, so the map is engulfed in mist;
-   zooming back in dissipates them. The inner .cloud-fill carries the art
-   so the outer element is free to slide. ── */
-.cloud-bank {
-  position: fixed;
-  left: 0; right: 0;
-  height: 82vh;
+/* ── CLOUD IRIS ──
+   A field of soft cartoon cloud puffs (warm parchment/cream). As you zoom
+   out they grow from the edges inward and the central opening pinches shut
+   like an iris, engulfing the map; zooming in opens it back up. JS sizes &
+   places the puffs and drives each one's scale from the zoom factor. ── */
+#cloud-iris {
+  position: fixed; inset: 0;
   z-index: 30;
+  overflow: hidden;
   pointer-events: none;
   opacity: 0;
-  transition: transform 0.5s ease, opacity 0.5s ease;
-  will-change: transform, opacity;
 }
-#cloud-top    { top: 0;    transform: translateY(-100%); }
-#cloud-bottom { bottom: 0; transform: translateY(100%); }
-.cloud-fill {
-  position: absolute; inset: 0;
-  /* the cloud field fills the whole bank, so the page reads as packed
-     clouds (not a band) when fully zoomed out */
-  background: url("clouds.svg") repeat-x bottom / auto 100%;
+.puff {
+  position: absolute;
+  background: url("puff.svg") no-repeat center / contain;
+  transform: scale(0);
+  transform-origin: center;
+  will-change: transform;
+  filter: drop-shadow(0 5px 7px rgba(74,63,45,0.13));
 }
-#cloud-bottom .cloud-fill { transform: scaleY(-1); }
 
 /* ── LANDMARKS ── */
 .landmark {
@@ -287,9 +283,8 @@ body::after {
   </div>
 </div>
 
-<!-- CLOUD BANKS: roll in from top & bottom as you zoom out -->
-<div class="cloud-bank" id="cloud-top"><div class="cloud-fill"></div></div>
-<div class="cloud-bank" id="cloud-bottom"><div class="cloud-fill"></div></div>
+<!-- CLOUD IRIS: hand-drawn cloud puffs that spawn/grow in as you zoom out -->
+<div id="cloud-iris"></div>
 
 <div id="map-stage">
   <div id="map-inner">
@@ -401,8 +396,8 @@ body::after {
   const stage = document.getElementById('map-stage');
   const inner = document.getElementById('map-inner');
   const hint  = document.getElementById('map-hint');
-  const cloudTop = document.getElementById('cloud-top');
-  const cloudBottom = document.getElementById('cloud-bottom');
+  const cloudIris = document.getElementById('cloud-iris');
+  let puffs = [];
 
   // View state: world point (0,0) sits at screen (tx,ty); 1 world px = scale screen px.
   let scale = 1, tx = 0, ty = 0;
@@ -433,17 +428,54 @@ body::after {
 
   // Clouds roll in from the top & bottom as you zoom out past the framed
   // view (scale → minScale), and dissipate as you zoom back in (→ frameScale).
+  function cloudEase(t){ t = Math.max(0, Math.min(1, t)); return t * t * (3 - 2 * t); }
+
+  // Lay out a staggered grid of hand-drawn cloud puffs (mixed shapes,
+  // sizes, rotations). Each records its distance from centre — edge puffs
+  // spawn first, centre last, so the cover closes inward as you zoom out.
+  function buildPuffs() {
+    if (!cloudIris) return;
+    const W = window.innerWidth, H = window.innerHeight;
+    const g = Math.max(96, Math.min(W, H) / 4.4);   // grid step
+    const size = g * 1.85;
+    const cx = W / 2, cy = H / 2, maxD = Math.hypot(cx, cy);
+    const cols = Math.ceil(W / g) + 3, rows = Math.ceil(H / g) + 3;
+    const frag = document.createDocumentFragment();
+    puffs = [];
+    let seed = 1;
+    const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const px = (c - 1) * g + (r % 2 ? g / 2 : 0) + (rnd() * 0.5 - 0.25) * g;
+        const py = (r - 1) * g + (rnd() * 0.4 - 0.2) * g;
+        const d = Math.min(1, Math.hypot(px - cx, py - cy) / maxD);
+        const el = document.createElement('div');
+        el.className = 'puff';
+        const s = size * (0.8 + rnd() * 0.55);
+        el.style.width = el.style.height = s.toFixed(0) + 'px';
+        el.style.left = (px - s / 2).toFixed(0) + 'px';
+        el.style.top  = (py - s / 2).toFixed(0) + 'px';
+        const rot = (rnd() * 22 - 11).toFixed(1);
+        el._rot = `rotate(${rot}deg) scaleX(${rnd() > 0.5 ? -1 : 1})`;
+        el._start = (1 - d) * 0.58;        // centre (d≈0) spawns latest
+        frag.appendChild(el);
+        puffs.push(el);
+      }
+    }
+    cloudIris.replaceChildren(frag);
+  }
+
+  // Drive the spawn-in from the zoom factor: each puff scales up from 0
+  // once the zoom passes its start threshold (edges first → centre last).
   function updateClouds() {
     let f = (frameScale - scale) / (frameScale - minScale);
     f = Math.max(0, Math.min(1, f));
-    const e = f * f * (3 - 2 * f);                 // smoothstep for a softer ramp
-    if (cloudTop) {
-      cloudTop.style.transform = `translateY(${(e - 1) * 100}%)`;
-      cloudTop.style.opacity = e;
-    }
-    if (cloudBottom) {
-      cloudBottom.style.transform = `translateY(${(1 - e) * 100}%)`;
-      cloudBottom.style.opacity = e;
+    if (cloudIris) cloudIris.style.opacity = f > 0.001 ? 1 : 0;
+    const zoom = 1 + f * 0.16;                  // gentle "fly in" growth
+    for (const el of puffs) {
+      let s = (f - el._start) / 0.42;
+      s = cloudEase(s) * zoom;
+      el.style.transform = `scale(${s.toFixed(3)}) ${el._rot}`;
     }
   }
 
@@ -471,6 +503,7 @@ body::after {
     frameScale = fitScale();          // the framed overview
     minScale = frameScale * MIN_ZOOM_OUT;   // you can zoom out below it into the clouds
     maxScale = frameScale * MAX_ZOOM_MULT;
+    buildPuffs();                     // (re)lay out the cloud iris for this viewport
     if (keepView) {
       scale = Math.min(maxScale, Math.max(minScale, scale));
       clampTranslate();
