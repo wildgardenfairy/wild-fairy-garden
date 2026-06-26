@@ -143,6 +143,46 @@ body::after {
   filter: drop-shadow(0 5px 7px rgba(74,63,45,0.13));
 }
 
+/* ── DECO OVERLAY ──
+   Plant illustrations + text labels that swoop in with the cloud iris. ── */
+#cloud-deco {
+  position: fixed; inset: 0;
+  z-index: 31;          /* sits above the cloud puffs (30) */
+  pointer-events: none;
+  opacity: 0;
+}
+.deco-el {
+  position: absolute;
+  opacity: 0;
+  will-change: transform, opacity;
+}
+.deco-svg {
+  object-fit: contain;
+  display: block;
+}
+/* Text label styles — add more classes as needed */
+.deco-label {
+  font-family: 'Beth Ellen', cursive;
+  font-size: clamp(9px, 1.1vw, 13px);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-light);
+  white-space: nowrap;
+}
+.deco-script {
+  font-family: 'Beth Ellen', cursive;
+  font-size: clamp(11px, 1.4vw, 16px);
+  color: var(--ink-light);
+  white-space: nowrap;
+}
+.deco-tagline {
+  font-family: 'Beth Ellen', cursive;
+  font-size: clamp(12px, 1.6vw, 18px);
+  color: var(--ink);
+  opacity: 0.82;
+  max-width: 80vw;
+}
+
 /* ── LANDMARKS ── */
 .landmark {
   position: absolute;
@@ -285,6 +325,9 @@ body::after {
 
 <!-- CLOUD IRIS: hand-drawn cloud puffs that spawn/grow in as you zoom out -->
 <div id="cloud-iris"></div>
+
+<!-- DECO OVERLAY: plants + text that swoop in alongside the clouds -->
+<div id="cloud-deco"></div>
 
 <div id="map-stage">
   <div id="map-inner">
@@ -455,6 +498,130 @@ body::after {
       : CLOUD_CFG;
   }
 
+  // ── DECO CONFIG — plants + text that swoop in with the cloud iris ────────
+  //
+  // Each entry describes one element:
+  //
+  //   type     'svg' → <img> using src    |  'text' → <span> using content
+  //   src      path to SVG file (svg only)
+  //   content  text string (text only)
+  //   cls      CSS class(es) on the element — add your own in the <style> block
+  //   x / y    final position on screen as CSS values ('5%', '20px', '10vw' …)
+  //   width    element width as CSS value (svg only)
+  //   from     swoop-in direction:
+  //            'top' | 'bottom' | 'left' | 'right'
+  //            'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
+  //   dist     how far off-screen the element starts (0–100, treated as vw/vh %)
+  //   at       when it appears within the cloud zone (0 = right away, 1 = last)
+  //
+  // SVG assignments below are placeholders — swap the numbers to match your drawings.
+  const DECO_ITEMS = [
+
+    // ── Full-width tagline across the top ────────────────────────────────────
+    { type:'text', content:'welcome to our garden.  for the thoughtful blooms.  you\'re safe here…',
+      cls:'deco-tagline', x:'2%', y:'13%', from:'top', dist:12, at:0.02 },
+
+    // ── Top-left plant ────────────────────────────────────────────────────────
+    { type:'svg', src:'assets/illustrations/plant drawing 1.svg',
+      x:'0%', y:'0%', width:'22vw', from:'top-left', dist:18, at:0.0 },
+
+    // ── Top-right plant + label ───────────────────────────────────────────────
+    { type:'svg', src:'assets/illustrations/plant drawing 2.svg',
+      x:'68%', y:'-2%', width:'28vw', from:'top-right', dist:18, at:0.04 },
+    { type:'text', content:'TO THE THOUGHTFUL TRELLIS',
+      cls:'deco-label', x:'64%', y:'3%', from:'top', dist:10, at:0.08 },
+
+    // ── Left: potted plant + label ────────────────────────────────────────────
+    { type:'svg', src:'assets/illustrations/plant drawing 3.svg',
+      x:'1%', y:'44%', width:'16vw', from:'left', dist:20, at:0.14 },
+    { type:'text', content:'TO THE SLEEPY POTS',
+      cls:'deco-label', x:'2%', y:'41%', from:'left', dist:14, at:0.18 },
+
+    // ── Bottom-left cluster ───────────────────────────────────────────────────
+    { type:'svg', src:'assets/illustrations/plant drawing 4.svg',
+      x:'18%', y:'52%', width:'10vw', from:'bottom-left', dist:16, at:0.20 },
+    { type:'svg', src:'assets/illustrations/plant drawing 5.svg',
+      x:'27%', y:'46%', width:'9vw',  from:'bottom',      dist:18, at:0.24 },
+    { type:'svg', src:'assets/illustrations/plant drawing 6.svg',
+      x:'35%', y:'50%', width:'11vw', from:'bottom',      dist:20, at:0.22 },
+
+    // ── Centre-bottom: dandelion/wind illustration ────────────────────────────
+    { type:'svg', src:'assets/illustrations/plant drawing 7.svg',
+      x:'45%', y:'50%', width:'14vw', from:'bottom', dist:16, at:0.28 },
+    { type:'text', content:'to the singing hollow',
+      cls:'deco-script', x:'49%', y:'56%', from:'bottom', dist:10, at:0.32 },
+
+    // ── Right cluster ─────────────────────────────────────────────────────────
+    { type:'svg', src:'assets/illustrations/plant drawing 8.svg',
+      x:'74%', y:'44%', width:'10vw', from:'right', dist:18, at:0.20 },
+    { type:'svg', src:'assets/illustrations/plant drawing 9.svg',
+      x:'83%', y:'40%', width:'9vw',  from:'right', dist:16, at:0.25 },
+    { type:'svg', src:'assets/illustrations/plant drawing 10.svg',
+      x:'90%', y:'48%', width:'8vw',  from:'bottom-right', dist:16, at:0.22 },
+    { type:'svg', src:'assets/illustrations/plant drawing 11.svg',
+      x:'62%', y:'50%', width:'9vw',  from:'bottom-right', dist:14, at:0.30 },
+  ];
+  // ─────────────────────────────────────────────────────────────────────────
+
+  const cloudDeco = document.getElementById('cloud-deco');
+  let decoElems = [];   // [{el, cfg}]
+
+  function buildDeco() {
+    if (!cloudDeco) return;
+    cloudDeco.innerHTML = '';
+    decoElems = [];
+    for (const cfg of DECO_ITEMS) {
+      let el;
+      if (cfg.type === 'svg') {
+        el = document.createElement('img');
+        el.className = 'deco-el deco-svg' + (cfg.cls ? ' ' + cfg.cls : '');
+        el.src = cfg.src;
+        el.alt = '';
+        el.style.width = cfg.width || '12vw';
+      } else {
+        el = document.createElement('span');
+        el.className = 'deco-el' + (cfg.cls ? ' ' + cfg.cls : '');
+        el.textContent = cfg.content || '';
+      }
+      el.style.left = cfg.x || '0';
+      el.style.top  = cfg.y || '0';
+      cloudDeco.appendChild(el);
+      decoElems.push({ el, cfg });
+    }
+  }
+
+  // Compute pixel swoop offset from a named direction + distance %.
+  function decoOffset(from, dist) {
+    const W = window.innerWidth, H = window.innerHeight;
+    const dx = W * dist / 100, dy = H * dist / 100;
+    const d = 0.7; // diagonal fraction
+    return {
+      'left':         { x: -dx,    y: 0    },
+      'right':        { x:  dx,    y: 0    },
+      'top':          { x: 0,      y: -dy  },
+      'bottom':       { x: 0,      y:  dy  },
+      'top-left':     { x: -dx*d,  y: -dy*d },
+      'top-right':    { x:  dx*d,  y: -dy*d },
+      'bottom-left':  { x: -dx*d,  y:  dy*d },
+      'bottom-right': { x:  dx*d,  y:  dy*d },
+    }[from] || { x: 0, y: 0 };
+  }
+
+  function updateDeco(e) {
+    if (!cloudDeco) return;
+    cloudDeco.style.opacity = e > 0.001 ? 1 : 0;
+    const DUR = 0.32; // fraction of e-range each element animates over
+    for (const { el, cfg } of decoElems) {
+      const t   = Math.max(0, Math.min(1, (e - (cfg.at || 0)) / DUR));
+      const eas = cloudEase(t);
+      const { x: ox, y: oy } = decoOffset(cfg.from || 'bottom', cfg.dist || 15);
+      el.style.transform = `translate(${(ox*(1-eas)).toFixed(1)}px,${(oy*(1-eas)).toFixed(1)}px)`;
+      el.style.opacity   = eas.toFixed(3);
+    }
+  }
+
+  buildDeco();
+
   // View state: world point (0,0) sits at screen (tx,ty); 1 world px = scale screen px.
   let scale = 1, tx = 0, ty = 0;
   let minScale = 1, maxScale = 1, frameScale = 1;
@@ -541,6 +708,7 @@ body::after {
       s = cloudEase(s) * zoom;
       el.style.transform = `scale(${s.toFixed(3)}) ${el._rot}`;
     }
+    updateDeco(f);   // drive the plant / text overlay with the same f value
   }
 
   // Zoom by `factor` while keeping the screen point (px,py) anchored.
@@ -568,6 +736,7 @@ body::after {
     minScale = frameScale * MIN_ZOOM_OUT;   // you can zoom out below it into the clouds
     maxScale = frameScale * MAX_ZOOM_MULT;
     buildPuffs();                     // (re)lay out the cloud iris for this viewport
+    buildDeco();                      // (re)build the deco overlay
     if (keepView) {
       scale = Math.min(maxScale, Math.max(minScale, scale));
       clampTranslate();
