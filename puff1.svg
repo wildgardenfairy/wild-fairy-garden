@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 112" width="150" height="112">
+  <defs>
+    <linearGradient id="pg" x1="0.3" y1="0" x2="0.6" y2="1">
+      <stop offset="0"    stop-color="#fdfaf3"/>
+      <stop offset="0.55" stop-color="#f4eede"/>
+      <stop offset="1"    stop-color="#e6dbc6"/>
+    </linearGradient>
+  </defs>
+  <!-- one plump cartoon cloud puff, softly shaded -->
+  <path fill="url(#pg)"
+    d="M30,98 C11,100 0,83 9,69 C-2,54 9,35 27,40 C29,17 56,7 74,18
+       C88,3 118,8 122,31 C143,31 153,54 135,68 C146,82 131,101 112,96
+       C99,103 42,103 30,98 Z"/>
+</svg>

@@ -122,6 +122,27 @@ body::after {
               rgba(245,240,232,0) 100%);
 }
 
+/* ── CLOUD IRIS ──
+   A field of soft cartoon cloud puffs (warm parchment/cream). As you zoom
+   out they grow from the edges inward and the central opening pinches shut
+   like an iris, engulfing the map; zooming in opens it back up. JS sizes &
+   places the puffs and drives each one's scale from the zoom factor. ── */
+#cloud-iris {
+  position: fixed; inset: 0;
+  z-index: 30;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 0;
+}
+.puff {
+  position: absolute;
+  background: no-repeat center / contain;   /* image set per-element by JS */
+  transform: scale(0);
+  transform-origin: center;
+  will-change: transform;
+  filter: drop-shadow(0 5px 7px rgba(74,63,45,0.13));
+}
+
 /* ── LANDMARKS ── */
 .landmark {
   position: absolute;
@@ -262,6 +283,9 @@ body::after {
   </div>
 </div>
 
+<!-- CLOUD IRIS: hand-drawn cloud puffs that spawn/grow in as you zoom out -->
+<div id="cloud-iris"></div>
+
 <div id="map-stage">
   <div id="map-inner">
 
@@ -347,6 +371,7 @@ body::after {
   // behaves identically on every browser and device.
   const ZOOM_STEP = 1.35;        // button / double-click zoom factor
   const MAX_ZOOM_MULT = 5;       // how far past "fit" you can zoom in
+  const MIN_ZOOM_OUT = 0.5;      // how far you can zoom out past the frame (into the clouds)
   const FIT_MARGIN = 0.92;       // leave a little breathing room when framed
 
   // CONTENT = bounds of the actual artwork. Used only to frame the
@@ -371,10 +396,68 @@ body::after {
   const stage = document.getElementById('map-stage');
   const inner = document.getElementById('map-inner');
   const hint  = document.getElementById('map-hint');
+  const cloudIris = document.getElementById('cloud-iris');
+  let puffs = [];
+
+  // ── CLOUD IRIS CONFIG — tweak everything here ─────────────────────────────
+  const CLOUD_CFG = {
+
+    // ── When clouds start rolling ───────────────────────────────────────────
+    // Fraction of the zoom-out range before the clouds appear at all.
+    // 1.0 = clouds begin the instant you zoom past fit-to-screen (current).
+    // 0.7 = you have to zoom out 30% further before anything starts.
+    // 0.4 = clouds only begin near the maximum zoom-out.
+    triggerZoom: 1.0,
+
+    // ── How staggered the iris close is (edge puffs vs centre puffs) ────────
+    // 0   = all puffs pop in at the same time (no iris effect).
+    // 0.58 = current — edge puffs appear well before centre ones.
+    // 1.0 = maximum delay between edge and centre.
+    spread: 0.58,
+
+    // ── How quickly each individual puff grows once it starts ────────────────
+    // Lower = snappier pop-in.  Higher = slower, more gradual grow.
+    growSpeed: 0.42,
+
+    // ── Puff density ─────────────────────────────────────────────────────────
+    // Grid step as a fraction of the smallest screen dimension.
+    // Smaller fraction = tighter grid = more puffs.
+    // 1/4.4 ≈ 0.227 is current.
+    gridStep: 1 / 4.4,
+
+    // ── Puff size relative to the grid step ──────────────────────────────────
+    // 1.85 = current.  Larger = bigger overlapping puffs, fewer gaps.
+    sizeRatio: 1.85,
+
+    // ── Subtle "fly in" zoom on the puffs as they appear ────────────────────
+    // 0 = puffs just scale up flat.  0.16 = current gentle zoom-in effect.
+    flyIn: 0.16,
+
+    // ── Mobile overrides ─────────────────────────────────────────────────────
+    // Any key listed here overrides the matching desktop value above
+    // when the screen is narrower than mobileBreakpoint (px).
+    mobileBreakpoint: 768,
+    mobile: {
+      triggerZoom: 1.2,   // same trigger on mobile — change if you want
+      spread:      0.58,
+      growSpeed:   0.42,
+      gridStep:    1 / 3.8,   // slightly looser grid on small screens
+      sizeRatio:   1.7,
+      flyIn:       0.16,
+    },
+  };
+  // ──────────────────────────────────────────────────────────────────────────
+
+  // Pick the right config set based on current screen width.
+  function activeCfg() {
+    return window.innerWidth < CLOUD_CFG.mobileBreakpoint
+      ? { ...CLOUD_CFG, ...CLOUD_CFG.mobile }
+      : CLOUD_CFG;
+  }
 
   // View state: world point (0,0) sits at screen (tx,ty); 1 world px = scale screen px.
   let scale = 1, tx = 0, ty = 0;
-  let minScale = 1, maxScale = 1;
+  let minScale = 1, maxScale = 1, frameScale = 1;
 
   function fitScale() {
     return Math.min(window.innerWidth / CONTENT_W, window.innerHeight / CONTENT_H) * FIT_MARGIN;
@@ -396,6 +479,68 @@ body::after {
 
   function apply() {
     inner.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
+    updateClouds();
+  }
+
+  // Clouds roll in from the top & bottom as you zoom out past the framed
+  // view (scale → minScale), and dissipate as you zoom back in (→ frameScale).
+  function cloudEase(t){ t = Math.max(0, Math.min(1, t)); return t * t * (3 - 2 * t); }
+
+  // Lay out a staggered grid of hand-drawn cloud puffs (mixed shapes,
+  // sizes, rotations). Each records its distance from centre — edge puffs
+  // spawn first, centre last, so the cover closes inward as you zoom out.
+  function buildPuffs() {
+    if (!cloudIris) return;
+    const cfg = activeCfg();
+    const W = window.innerWidth, H = window.innerHeight;
+    const g = Math.max(96, Math.min(W, H) * cfg.gridStep);
+    const size = g * cfg.sizeRatio;
+    const cx = W / 2, cy = H / 2, maxD = Math.hypot(cx, cy);
+    const cols = Math.ceil(W / g) + 3, rows = Math.ceil(H / g) + 3;
+    const frag = document.createDocumentFragment();
+    puffs = [];
+    let seed = 1;
+    const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const px = (c - 1) * g + (r % 2 ? g / 2 : 0) + (rnd() * 0.5 - 0.25) * g;
+        const py = (r - 1) * g + (rnd() * 0.4 - 0.2) * g;
+        const d = Math.min(1, Math.hypot(px - cx, py - cy) / maxD);
+        const el = document.createElement('div');
+        el.className = 'puff';
+        const puffFile = ['puff.svg', 'puff1.svg', 'puff2.svg'][Math.floor(rnd() * 3)];
+        el.style.backgroundImage = `url("${puffFile}")`;
+        const s = size * (0.8 + rnd() * 0.55);
+        el.style.width = el.style.height = s.toFixed(0) + 'px';
+        el.style.left = (px - s / 2).toFixed(0) + 'px';
+        el.style.top  = (py - s / 2).toFixed(0) + 'px';
+        const rot = (rnd() * 22 - 11).toFixed(1);
+        el._rot = `rotate(${rot}deg) scaleX(${rnd() > 0.5 ? -1 : 1})`;
+        el._start = (1 - d) * cfg.spread;   // edge puffs (d≈1) spawn first
+        frag.appendChild(el);
+        puffs.push(el);
+      }
+    }
+    cloudIris.replaceChildren(frag);
+  }
+
+  // Drive the spawn-in from the zoom factor: each puff scales up from 0
+  // once the zoom passes its start threshold (edges first → centre last).
+  function updateClouds() {
+    const cfg = activeCfg();
+    // cloudZoneTop: zoom level where clouds START appearing.
+    // triggerZoom 1.0 → starts right at frameScale.
+    // triggerZoom 0.7 → need to zoom 30% further before anything shows.
+    const cloudZoneTop = frameScale * cfg.triggerZoom;
+    let f = (cloudZoneTop - scale) / (cloudZoneTop - minScale);
+    f = Math.max(0, Math.min(1, f));
+    if (cloudIris) cloudIris.style.opacity = f > 0.001 ? 1 : 0;
+    const zoom = 1 + f * cfg.flyIn;
+    for (const el of puffs) {
+      let s = (f - el._start) / cfg.growSpeed;
+      s = cloudEase(s) * zoom;
+      el.style.transform = `scale(${s.toFixed(3)}) ${el._rot}`;
+    }
   }
 
   // Zoom by `factor` while keeping the screen point (px,py) anchored.
@@ -410,7 +555,7 @@ body::after {
   }
 
   function resetView() {
-    scale = minScale;
+    scale = frameScale;        // open at the framed overview, above the cloud zone
     // Centre the artwork in the viewport (not the wide padded world).
     tx = window.innerWidth / 2 - CONTENT_CX * scale;
     ty = window.innerHeight / 2 - CONTENT_CY * scale;
@@ -419,9 +564,10 @@ body::after {
   }
 
   function recomputeBounds(keepView) {
-    const fit = fitScale();
-    minScale = fit;
-    maxScale = fit * MAX_ZOOM_MULT;
+    frameScale = fitScale();          // the framed overview
+    minScale = frameScale * MIN_ZOOM_OUT;   // you can zoom out below it into the clouds
+    maxScale = frameScale * MAX_ZOOM_MULT;
+    buildPuffs();                     // (re)lay out the cloud iris for this viewport
     if (keepView) {
       scale = Math.min(maxScale, Math.max(minScale, scale));
       clampTranslate();
