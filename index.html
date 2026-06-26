@@ -275,7 +275,7 @@ body::after {
 
 <!-- COMPASS: pinned to the screen, outside the pannable map -->
 <div class="map-header">
-  <img class="compass-img" src="compass.svg" alt="Recenter map"
+  <img class="compass-img" src="assets/map/compass.svg" alt="Recenter map"
        role="button" tabindex="0" title="Recenter map"
        onerror="this.style.display='none'">
   <div class="welcome-text">
@@ -289,11 +289,11 @@ body::after {
 <div id="map-stage">
   <div id="map-inner">
 
-    <img id="map-bg" src="map.svg" alt="">
+    <img id="map-bg" src="assets/map/map.svg" alt="">
 
     <a class="landmark" id="lm-pigeon" href="about.html" aria-label="Pigeon's Peak">
       <div class="lm-img-wrap">
-        <img class="lm-img" src="pigeonspeak.svg" alt="Pigeon's Peak"
+        <img class="lm-img" src="assets/landmarks/pigeonspeak.svg" alt="Pigeon's Peak"
              onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
         <div class="lm-fallback">⛰️</div>
       </div>
@@ -302,7 +302,7 @@ body::after {
 
     <a class="landmark" id="lm-singing" href="videos.html" aria-label="Singing Hollow">
       <div class="lm-img-wrap">
-        <img class="lm-img" src="singinghollow.svg" alt="Singing Hollow"
+        <img class="lm-img" src="assets/landmarks/singinghollow.svg" alt="Singing Hollow"
              onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
         <div class="lm-fallback">🌲</div>
       </div>
@@ -311,7 +311,7 @@ body::after {
 
     <a class="landmark" id="lm-well" href="contact.html" aria-label="Wishing Well">
       <div class="lm-img-wrap">
-        <img class="lm-img" src="wishingwell.svg" alt="Wishing Well"
+        <img class="lm-img" src="assets/landmarks/wishingwell.svg" alt="Wishing Well"
              onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
         <div class="lm-fallback">🪣</div>
       </div>
@@ -320,7 +320,7 @@ body::after {
 
     <a class="landmark" id="lm-faraway" href="blog.html" aria-label="Faraway Tree">
       <div class="lm-img-wrap">
-        <img class="lm-img" src="farawaytree.svg" alt="Faraway Tree"
+        <img class="lm-img" src="assets/landmarks/farawaytree.svg" alt="Faraway Tree"
              onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
         <div class="lm-fallback">🌳</div>
       </div>
@@ -329,7 +329,7 @@ body::after {
 
     <a class="landmark" id="lm-field" href="reviews.html" aria-label="Field of Golden Daffodils">
       <div class="lm-img-wrap">
-        <img class="lm-img" src="goldenfield.svg" alt="Field of Golden Daffodils"
+        <img class="lm-img" src="assets/landmarks/goldenfield.svg" alt="Field of Golden Daffodils"
              onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
         <div class="lm-fallback">🌼</div>
       </div>
@@ -338,7 +338,7 @@ body::after {
 
     <a class="landmark" id="lm-frog" href="community.html" aria-label="Frog Pond">
       <div class="lm-img-wrap">
-        <img class="lm-img" src="frogpond.svg" alt="Frog Pond"
+        <img class="lm-img" src="assets/landmarks/frogpond.svg" alt="Frog Pond"
              onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
         <div class="lm-fallback">🐸</div>
       </div>
@@ -508,7 +508,7 @@ body::after {
         const d = Math.min(1, Math.hypot(px - cx, py - cy) / maxD);
         const el = document.createElement('div');
         el.className = 'puff';
-        const puffFile = ['puff.svg', 'puff1.svg', 'puff2.svg'][Math.floor(rnd() * 3)];
+        const puffFile = ['assets/map/puff.svg', 'assets/map/puff1.svg', 'assets/map/puff2.svg'][Math.floor(rnd() * 3)];
         el.style.backgroundImage = `url("${puffFile}")`;
         const s = size * (0.8 + rnd() * 0.55);
         el.style.width = el.style.height = s.toFixed(0) + 'px';
