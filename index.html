@@ -82,8 +82,6 @@ body::after {
   z-index: 40;
   display: flex; flex-direction: column; align-items: center; gap: 1px;
   pointer-events: none;          /* never blocks a pan that starts on it */
-  opacity: 0;                    /* hidden until the foliage clears (JS-driven) */
-  transition: opacity 0.45s ease;
 }
 .compass-img {
   width: 150px; height: 150px; opacity: 1;
@@ -118,8 +116,6 @@ body::after {
   height: 340px;
   z-index: 35;
   pointer-events: none;
-  opacity: 0;                    /* fades in with the compass (JS-driven) */
-  transition: opacity 0.45s ease;
   background: radial-gradient(190px 175px at 96px 122px,
               rgba(245,240,232,0.82) 0%,
               rgba(245,240,232,0.58) 48%,
@@ -562,9 +558,6 @@ body::after {
   // ─────────────────────────────────────────────────────────────────────────
 
   const cloudDeco  = document.getElementById('cloud-deco');
-  const mapHeader  = document.querySelector('.map-header');
-  const topFade    = document.getElementById('top-fade');
-  const compassImg = document.querySelector('.compass-img');
   let decoElems = [];   // [{el, cfg}]
 
   const clamp01 = v => Math.max(0, Math.min(1, v));
@@ -583,7 +576,6 @@ body::after {
     decoInEnd:    0.50,   // foliage fully in
     decoOutStart: 0.42,   // foliage begins to spread + fade out
     decoOutEnd:   0.14,   // foliage fully gone
-    compassEnd:   0.12,   // compass fully visible below this f
   };
 
   function parsePct(v) {
@@ -738,15 +730,6 @@ body::after {
     }
 
     updateDeco(f);   // foliage layer, driven by the same f value
-
-    // Compass + welcome only appear once the foliage has cleared (f → 0).
-    const compassP = clamp01((PHASE.compassEnd - f) / PHASE.compassEnd);
-    if (mapHeader) {
-      mapHeader.style.opacity = compassP.toFixed(3);
-      mapHeader.style.pointerEvents = compassP > 0.5 ? 'auto' : 'none';
-    }
-    if (compassImg) compassImg.style.pointerEvents = compassP > 0.5 ? 'auto' : 'none';
-    if (topFade) topFade.style.opacity = compassP.toFixed(3);
   }
 
   // Zoom by `factor` while keeping the screen point (px,py) anchored.
