@@ -82,6 +82,8 @@ body::after {
   z-index: 40;
   display: flex; flex-direction: column; align-items: center; gap: 1px;
   pointer-events: none;          /* never blocks a pan that starts on it */
+  opacity: 0;                    /* hidden until the foliage clears (JS-driven) */
+  transition: opacity 0.45s ease;
 }
 .compass-img {
   width: 150px; height: 150px; opacity: 1;
@@ -116,6 +118,8 @@ body::after {
   height: 340px;
   z-index: 35;
   pointer-events: none;
+  opacity: 0;                    /* fades in with the compass (JS-driven) */
+  transition: opacity 0.45s ease;
   background: radial-gradient(190px 175px at 96px 122px,
               rgba(245,240,232,0.82) 0%,
               rgba(245,240,232,0.58) 48%,
@@ -147,7 +151,7 @@ body::after {
    Plant illustrations + text labels that swoop in with the cloud iris. ── */
 #cloud-deco {
   position: fixed; inset: 0;
-  z-index: 31;          /* sits above the cloud puffs (30) */
+  z-index: 25;          /* below the cloud puffs (30), above the map (20) */
   pointer-events: none;
   opacity: 0;
 }
@@ -557,8 +561,35 @@ body::after {
   ];
   // ─────────────────────────────────────────────────────────────────────────
 
-  const cloudDeco = document.getElementById('cloud-deco');
+  const cloudDeco  = document.getElementById('cloud-deco');
+  const mapHeader  = document.querySelector('.map-header');
+  const topFade    = document.getElementById('top-fade');
+  const compassImg = document.querySelector('.compass-img');
   let decoElems = [];   // [{el, cfg}]
+
+  const clamp01 = v => Math.max(0, Math.min(1, v));
+
+  // Uniform size for every illustration, so they all read at roughly the
+  // same scale regardless of the original drawing. Tweak this one value.
+  const DECO_SVG_W = '14vw';
+
+  // ── PHASE MAP — drives the "fall through the layers" sequence ──
+  // f = 1 fully zoomed OUT (clouds) … f = 0 framed map.  As you zoom IN
+  // (f shrinks): clouds part → foliage fades in → foliage spreads/fades
+  // away → compass appears over the map.
+  const PHASE = {
+    cloudEnd:     0.60,   // clouds fully gone below this f (present above)
+    decoInStart:  0.74,   // foliage begins to fade in
+    decoInEnd:    0.50,   // foliage fully in
+    decoOutStart: 0.42,   // foliage begins to spread + fade out
+    decoOutEnd:   0.14,   // foliage fully gone
+    compassEnd:   0.12,   // compass fully visible below this f
+  };
+
+  function parsePct(v) {
+    const n = parseFloat(v);
+    return (typeof v === 'string' && v.indexOf('%') !== -1 && !isNaN(n)) ? n : 50;
+  }
 
   function buildDeco() {
     if (!cloudDeco) return;
@@ -571,7 +602,7 @@ body::after {
         el.className = 'deco-el deco-svg' + (cfg.cls ? ' ' + cfg.cls : '');
         el.src = cfg.src;
         el.alt = '';
-        el.style.width = cfg.width || '12vw';
+        el.style.width = DECO_SVG_W;   // uniform size for all illustrations
       } else {
         el = document.createElement('span');
         el.className = 'deco-el' + (cfg.cls ? ' ' + cfg.cls : '');
@@ -579,38 +610,37 @@ body::after {
       }
       el.style.left = cfg.x || '0';
       el.style.top  = cfg.y || '0';
+      // Precompute a normalised radial direction (out from screen centre)
+      // so the element spreads outward — like the clouds — as it leaves.
+      let dx = parsePct(cfg.x) - 50, dy = parsePct(cfg.y) - 50;
+      const L = Math.hypot(dx, dy);
+      if (L < 6) { dx = 0; dy = -1; }           // near-centre → drift upward
+      cfg._dx = L < 6 ? 0  : dx / L;
+      cfg._dy = L < 6 ? -1 : dy / L;
       cloudDeco.appendChild(el);
       decoElems.push({ el, cfg });
     }
   }
 
-  // Compute pixel swoop offset from a named direction + distance %.
-  function decoOffset(from, dist) {
-    const W = window.innerWidth, H = window.innerHeight;
-    const dx = W * dist / 100, dy = H * dist / 100;
-    const d = 0.7; // diagonal fraction
-    return {
-      'left':         { x: -dx,    y: 0    },
-      'right':        { x:  dx,    y: 0    },
-      'top':          { x: 0,      y: -dy  },
-      'bottom':       { x: 0,      y:  dy  },
-      'top-left':     { x: -dx*d,  y: -dy*d },
-      'top-right':    { x:  dx*d,  y: -dy*d },
-      'bottom-left':  { x: -dx*d,  y:  dy*d },
-      'bottom-right': { x:  dx*d,  y:  dy*d },
-    }[from] || { x: 0, y: 0 };
-  }
-
-  function updateDeco(e) {
+  // Foliage layer: fades IN as the clouds part, then spreads outward +
+  // fades OUT into the map. Driven by the same f as the clouds.
+  function updateDeco(f) {
     if (!cloudDeco) return;
-    cloudDeco.style.opacity = e > 0.001 ? 1 : 0;
-    const DUR = 0.32; // fraction of e-range each element animates over
+    const P = PHASE;
+    const inProg  = clamp01((P.decoInStart - f) / (P.decoInStart - P.decoInEnd));
+    const outProg = clamp01((f - P.decoOutEnd) / (P.decoOutStart - P.decoOutEnd));
+    const vis     = Math.min(inProg, outProg);
+    cloudDeco.style.opacity = vis > 0.001 ? 1 : 0;
+    const spread  = 1 - outProg;                 // 0 = settled, 1 = fully spread
+    const growIn  = 0.92 + 0.08 * inProg;        // gentle grow as it appears
+    const SPREAD  = Math.max(window.innerWidth, window.innerHeight) * 0.55;
+    const sEase   = cloudEase(spread);
     for (const { el, cfg } of decoElems) {
-      const t   = Math.max(0, Math.min(1, (e - (cfg.at || 0)) / DUR));
-      const eas = cloudEase(t);
-      const { x: ox, y: oy } = decoOffset(cfg.from || 'bottom', cfg.dist || 15);
-      el.style.transform = `translate(${(ox*(1-eas)).toFixed(1)}px,${(oy*(1-eas)).toFixed(1)}px)`;
-      el.style.opacity   = eas.toFixed(3);
+      const ox = (cfg._dx || 0) * sEase * SPREAD;
+      const oy = (cfg._dy || 0) * sEase * SPREAD;
+      const sc = growIn * (1 + sEase * 1.15);    // rush past the viewer
+      el.style.opacity   = vis.toFixed(3);
+      el.style.transform = `translate(${ox.toFixed(1)}px,${oy.toFixed(1)}px) scale(${sc.toFixed(3)})`;
     }
   }
 
@@ -689,20 +719,34 @@ body::after {
   // once the zoom passes its start threshold (edges first → centre last).
   function updateClouds() {
     const cfg = activeCfg();
-    // cloudZoneTop: zoom level where clouds START appearing.
-    // triggerZoom 1.0 → starts right at frameScale.
-    // triggerZoom 0.7 → need to zoom 30% further before anything shows.
-    const cloudZoneTop = frameScale * cfg.triggerZoom;
-    let f = (cloudZoneTop - scale) / (cloudZoneTop - minScale);
+    // f = how far into the zoom-OUT range we are, independent of device:
+    //   f = 0 at the framed view (map only) … f = 1 fully zoomed out.
+    // The whole clouds → foliage → map reveal plays out across this range.
+    let f = (frameScale - scale) / (frameScale - minScale);
     f = Math.max(0, Math.min(1, f));
-    if (cloudIris) cloudIris.style.opacity = f > 0.001 ? 1 : 0;
-    const zoom = 1 + f * cfg.flyIn;
+
+    // Clouds only occupy the TOP band of the zoom-out range: fully present
+    // at f = 1, fully parted by f = cloudEnd. Below that the foliage takes
+    // over. Remap f into the cloud band so the puffs finish early.
+    const cI = clamp01((f - PHASE.cloudEnd) / (1 - PHASE.cloudEnd));
+    if (cloudIris) cloudIris.style.opacity = cI > 0.001 ? 1 : 0;
+    const zoom = 1 + cI * cfg.flyIn;
     for (const el of puffs) {
-      let s = (f - el._start) / cfg.growSpeed;
+      let s = (cI - el._start) / cfg.growSpeed;
       s = cloudEase(s) * zoom;
       el.style.transform = `scale(${s.toFixed(3)}) ${el._rot}`;
     }
-    updateDeco(f);   // drive the plant / text overlay with the same f value
+
+    updateDeco(f);   // foliage layer, driven by the same f value
+
+    // Compass + welcome only appear once the foliage has cleared (f → 0).
+    const compassP = clamp01((PHASE.compassEnd - f) / PHASE.compassEnd);
+    if (mapHeader) {
+      mapHeader.style.opacity = compassP.toFixed(3);
+      mapHeader.style.pointerEvents = compassP > 0.5 ? 'auto' : 'none';
+    }
+    if (compassImg) compassImg.style.pointerEvents = compassP > 0.5 ? 'auto' : 'none';
+    if (topFade) topFade.style.opacity = compassP.toFixed(3);
   }
 
   // Zoom by `factor` while keeping the screen point (px,py) anchored.
