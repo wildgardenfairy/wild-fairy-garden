@@ -25,6 +25,8 @@
     cursor: grab;
   }
   .cf-stage.dragging { cursor: grabbing; }
+  .cf-stage:focus { outline: none; }
+  .cf-stage:focus-visible { outline: 2px solid var(--ink-light); outline-offset: 8px; border-radius: 10px; }
   .cf-card {
     position: absolute; top: 0; left: 0;
     transform-origin: center center;
@@ -139,30 +141,49 @@
 </a>
 
 <script>
-  // ── VIDEO COVERFLOWS ────────────────────────────────────────────
-  // Two rows. Fill each list with your videos:
-  //   id      = the YouTube id (the part after watch?v=  or youtu.be/ )
-  //   title   = shown below the video
-  //   caption = short write-up shown below the video
+  // ── YOUR VIDEOS ─────────────────────────────────────────────────
+  // To add a video, add ONE new line to a list below. Two ways:
+  //   • just paste the link in quotes:          'https://youtu.be/XXXXXXXXXXX',
+  //   • or a link with a title + caption:        { url: 'https://youtu.be/XXXXXXXXXXX', title: 'my title', caption: 'a few words' },
+  // Any YouTube link works — watch?v=… , youtu.be/… , or /shorts/… .
+  // Add as many as you like; each row loops no matter how many there are.
+  //
   // WIDE  = normal landscape videos.   REELS = vertical shorts/reels.
-  // Both rows loop endlessly — past the last wraps back to the first.
   const WIDE = [
-    { id: '', title: 'a title for this one', caption: 'something about this performance — loose and honest' },
-    { id: '', title: 'another one',          caption: 'whose song, and what it means to you' },
-    { id: '', title: 'an original',          caption: 'entirely yours — something grown in the hollow' },
+    { url: '', title: 'a title for this one', caption: 'something about this performance — loose and honest' },
+    { url: '', title: 'another one',          caption: 'whose song, and what it means to you' },
+    { url: '', title: 'an original',          caption: 'entirely yours — something grown in the hollow' },
+    // { url: 'https://youtu.be/XXXXXXXXXXX', title: 'a new one', caption: 'say something about it' },
   ];
   const REELS = [
-    { id: '', title: 'a little reel', caption: 'a short vertical moment' },
-    { id: '', title: 'another reel',  caption: 'a snippet, a sketch, a scene' },
-    { id: '', title: 'one more',      caption: 'quick and vertical' },
+    { url: '', title: 'a little reel', caption: 'a short vertical moment' },
+    { url: '', title: 'another reel',  caption: 'a snippet, a sketch, a scene' },
+    { url: '', title: 'one more',      caption: 'quick and vertical' },
+    // 'https://www.youtube.com/shorts/XXXXXXXXXXX',
   ];
 
   const ytSrc = id => `https://www.youtube-nocookie.com/embed/${id}?enablejsapi=1&rel=0&playsinline=1`;
 
+  // Pull the 11-char video id out of any YouTube link (or a bare id).
+  function parseId(input) {
+    if (!input) return '';
+    input = String(input).trim();
+    const m = input.match(/(?:youtu\.be\/|\/embed\/|\/shorts\/|[?&]v=)([A-Za-z0-9_-]{11})/);
+    if (m) return m[1];
+    if (/^[A-Za-z0-9_-]{11}$/.test(input)) return input;   // already just an id
+    return '';
+  }
+  // Accept a plain link string OR a { url/id, title, caption } object.
+  function normalize(v) {
+    if (typeof v === 'string') return { id: parseId(v), title: '', caption: '' };
+    return { id: parseId(v.url || v.id || ''), title: v.title || '', caption: v.caption || '' };
+  }
+
   // A continuous coverflow: cards are absolutely positioned around a
   // fractional centre index `pos`; wrap() makes the distance loop, so
   // there's no first or last — it spins forever in either direction.
-  function coverflow(root, cap, items) {
+  function coverflow(root, cap, rawItems) {
+    const items = (rawItems || []).map(normalize);
     const N = items.length;
     if (!N) return;
     const portrait = root.classList.contains('cf-tall');
@@ -269,12 +290,22 @@
     prev.addEventListener('click', () => animateTo(Math.round(pos) - 1));
     next.addEventListener('click', () => animateTo(Math.round(pos) + 1));
 
+    // keyboard: ← / → step through the focused carousel
+    stage.tabIndex = 0;
+    stage.setAttribute('role', 'group');
+    stage.setAttribute('aria-label', portrait ? 'reels carousel' : 'videos carousel');
+    stage.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft')       { e.preventDefault(); animateTo(Math.round(pos) - 1); }
+      else if (e.key === 'ArrowRight') { e.preventDefault(); animateTo(Math.round(pos) + 1); }
+    });
+
     // drag (pointer events unify mouse + touch)
     let dragging = false, startX = 0, startPos = 0, moved = false;
     stage.addEventListener('pointerdown', (e) => {
       dragging = true; moved = false; startX = e.clientX; startPos = pos;
       cancelAnimationFrame(anim);
       stage.classList.add('dragging');
+      stage.focus({ preventScroll: true });   // so arrow keys drive this row
       try { stage.setPointerCapture(e.pointerId); } catch (_) {}
     });
     stage.addEventListener('pointermove', (e) => {
