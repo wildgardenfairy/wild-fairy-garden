@@ -35,16 +35,24 @@
   .cf-wide .cf-card { width: min(78vw, 540px); }
   .cf-tall .cf-card { width: min(56vw, 268px); }
   .cf-frame {
-    position: relative; overflow: hidden; border-radius: 10px;
-    background: var(--parchment-dark);
+    --wood: 10px;
+    position: relative; overflow: hidden; border-radius: 12px;
+    /* hand-drawn wooden panel the video is mounted on */
+    background: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20width%3D'260'%20height%3D'150'%20viewBox%3D'0%200%20260%20150'%3E%3Cdefs%3E%3Cfilter%20id%3D'w'%3E%3CfeTurbulence%20type%3D'fractalNoise'%20baseFrequency%3D'0.012%200.11'%20numOctaves%3D'2'%20seed%3D'5'%20result%3D'n'%2F%3E%3CfeDisplacementMap%20in%3D'SourceGraphic'%20in2%3D'n'%20scale%3D'7'%2F%3E%3C%2Ffilter%3E%3C%2Fdefs%3E%3Crect%20width%3D'260'%20height%3D'150'%20fill%3D'%23e6dabf'%2F%3E%3Cg%20filter%3D'url(%23w)'%20fill%3D'none'%20stroke%3D'%237c6a4c'%20stroke-width%3D'1.1'%20stroke-linecap%3D'round'%20opacity%3D'0.55'%3E%3Cpath%20d%3D'M-5%2020%20C70%2014%2C150%2026%2C265%2019'%2F%3E%3Cpath%20d%3D'M-5%2040%20C70%2034%2C150%2046%2C265%2039'%2F%3E%3Cpath%20d%3D'M-5%2060%20C70%2055%2C150%2066%2C265%2059'%2F%3E%3Cpath%20d%3D'M-5%2082%20C70%2075%2C150%2088%2C265%2081'%2F%3E%3Cpath%20d%3D'M-5%20102%20C70%2096%2C150%20108%2C265%20101'%2F%3E%3Cpath%20d%3D'M-5%20122%20C70%20115%2C150%20128%2C265%20121'%2F%3E%3Cpath%20d%3D'M-5%20140%20C70%20134%2C150%20145%2C265%20139'%2F%3E%3C%2Fg%3E%3Cg%20filter%3D'url(%23w)'%20fill%3D'none'%20stroke%3D'%236a5940'%20stroke-width%3D'1.2'%20opacity%3D'0.5'%3E%3Cellipse%20cx%3D'72'%20cy%3D'71'%20rx%3D'9'%20ry%3D'5'%2F%3E%3Cellipse%20cx%3D'72'%20cy%3D'71'%20rx%3D'4'%20ry%3D'2'%2F%3E%3Cellipse%20cx%3D'192'%20cy%3D'40'%20rx%3D'7'%20ry%3D'4'%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E") center / cover no-repeat, #e6dabf;
     box-shadow: 0 10px 26px rgba(42,33,24,0.2);
   }
   .cf-wide .cf-frame { aspect-ratio: 16 / 9; }
   .cf-tall .cf-frame { aspect-ratio: 9 / 16; }
-  .cf-frame iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+  /* the video sits inset so the wood shows as a frame around it */
+  .cf-frame iframe { position: absolute; inset: var(--wood); width: auto; height: auto; border: 0; border-radius: 6px; background: #000; }
+  .cf-frame::after {
+    content: ''; position: absolute; inset: var(--wood);
+    border-radius: 6px; pointer-events: none; z-index: 1;
+    box-shadow: inset 0 0 0 1px rgba(42,33,24,0.18), inset 0 2px 8px rgba(42,33,24,0.3);
+  }
   .cf-ph {
-    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
-    font-style: italic; color: var(--ink-faint); font-size: 13px; text-align: center; padding: 12px;
+    position: absolute; inset: var(--wood); display: flex; align-items: center; justify-content: center;
+    font-style: italic; color: var(--ink-light); font-size: 13px; text-align: center; padding: 12px;
   }
   /* veil catches drags/taps on side cards; removed on the centre card so it plays */
   .cf-veil { position: absolute; inset: 0; z-index: 2; cursor: grab; }
@@ -52,19 +60,6 @@
   .cf-cap { text-align: center; padding: 0 12px; margin-top: 16px; min-height: 3.4em; }
   .cf-cap .t { font-family: 'Beth Ellen', cursive; font-size: clamp(17px, 2.4vw, 22px); margin-bottom: 6px; }
   .cf-cap .d { font-size: clamp(13px, 1.6vw, 15px); color: var(--ink-light); font-style: italic; line-height: 1.7; max-width: 520px; margin: 0 auto; }
-  .cf-arrow {
-    position: absolute; top: 50%; transform: translateY(-50%); z-index: 50;
-    width: 40px; height: 40px; border-radius: 50%;
-    background: var(--parchment); border: 1.5px solid var(--dashed); color: var(--ink);
-    font-family: 'Beth Ellen', cursive; font-size: 22px; line-height: 1; cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 2px 8px rgba(42,33,24,0.12);
-    transition: transform 0.15s ease, background 0.2s ease;
-  }
-  .cf-arrow:hover { background: var(--parchment-dark); }
-  .cf-arrow:active { transform: translateY(-50%) scale(0.9); }
-  .cf-prev { left: max(6px, 2vw); }
-  .cf-next { right: max(6px, 2vw); }
   .cf-dots { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
   .cf-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--dashed); border: none; padding: 0; cursor: pointer; transition: background .25s, transform .25s; }
   .cf-dot.active { background: var(--ink); transform: scale(1.4); }
@@ -213,11 +208,6 @@
       return card;
     });
 
-    const prev = document.createElement('button');
-    prev.type = 'button'; prev.className = 'cf-arrow cf-prev'; prev.setAttribute('aria-label', 'previous'); prev.textContent = '‹';
-    const next = document.createElement('button');
-    next.type = 'button'; next.className = 'cf-arrow cf-next'; next.setAttribute('aria-label', 'next'); next.textContent = '›';
-    viewport.appendChild(prev); viewport.appendChild(next);
     root.appendChild(viewport);
 
     const dotsWrap = document.createElement('div'); dotsWrap.className = 'cf-dots';
@@ -287,9 +277,6 @@
       })(performance.now());
     }
 
-    prev.addEventListener('click', () => animateTo(Math.round(pos) - 1));
-    next.addEventListener('click', () => animateTo(Math.round(pos) + 1));
-
     // keyboard: ← / → step through the focused carousel
     stage.tabIndex = 0;
     stage.setAttribute('role', 'group');
@@ -298,6 +285,18 @@
       if (e.key === 'ArrowLeft')       { e.preventDefault(); animateTo(Math.round(pos) - 1); }
       else if (e.key === 'ArrowRight') { e.preventDefault(); animateTo(Math.round(pos) + 1); }
     });
+
+    // trackpad: a horizontal two-finger swipe scrubs through the row,
+    // then snaps to the nearest video when the swipe stops
+    let wheelTO = null;
+    stage.addEventListener('wheel', (e) => {
+      if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;   // vertical intent → let the page scroll
+      e.preventDefault();
+      cancelAnimationFrame(anim);
+      render(pos + e.deltaX / (cardW * SPACING));
+      clearTimeout(wheelTO);
+      wheelTO = setTimeout(() => animateTo(Math.round(pos)), 110);
+    }, { passive: false });
 
     // drag (pointer events unify mouse + touch)
     let dragging = false, startX = 0, startPos = 0, moved = false;
