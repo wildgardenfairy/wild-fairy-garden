@@ -13,43 +13,63 @@
   /* raise the landmark higher on the page */
   .page-hero { margin-top: 16px; }
 
-  /* ── VIDEO REEL (coverflow carousel) ── */
-  .page-wrap { padding-bottom: 18px; }
-  .reel {
-    display: flex; gap: 2.5vw;
-    overflow-x: auto; scroll-snap-type: x mandatory;
-    -webkit-overflow-scrolling: touch; scrollbar-width: none;
-    padding: 20px 0 8px;
-    padding-inline: calc(50% - min(38vw, 280px));   /* lets first/last centre */
+  /* ── VIDEO COVERFLOW (continuous / looping) ── */
+  .page-wrap { padding-bottom: 14px; }
+  .cf { position: relative; width: 100%; margin: 0 auto; }
+  .cf-viewport { position: relative; }
+  .cf-stage {
+    position: relative; margin: 0 auto;
+    perspective: 1200px;
+    touch-action: pan-y;                 /* vertical page scroll still works */
+    -webkit-user-select: none; user-select: none;
+    cursor: grab;
   }
-  .reel::-webkit-scrollbar { display: none; }
-  .reel-card {
-    flex: 0 0 min(76vw, 560px);
-    scroll-snap-align: center;
+  .cf-stage.dragging { cursor: grabbing; }
+  .cf-card {
+    position: absolute; top: 0; left: 0;
     transform-origin: center center;
     will-change: transform, opacity;
   }
-  .reel-frame {
-    position: relative; aspect-ratio: 16 / 9;
+  .cf-wide .cf-card { width: min(78vw, 540px); }
+  .cf-tall .cf-card { width: min(56vw, 268px); }
+  .cf-frame {
+    position: relative; overflow: hidden; border-radius: 10px;
     background: var(--parchment-dark);
-    border-radius: 10px; overflow: hidden;
-    box-shadow: 0 8px 24px rgba(42,33,24,0.18);
+    box-shadow: 0 10px 26px rgba(42,33,24,0.2);
   }
-  .reel-frame iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
-  .reel-ph {
+  .cf-wide .cf-frame { aspect-ratio: 16 / 9; }
+  .cf-tall .cf-frame { aspect-ratio: 9 / 16; }
+  .cf-frame iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+  .cf-ph {
     position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
-    font-style: italic; color: var(--ink-faint); font-size: 14px; text-align: center; padding: 14px;
+    font-style: italic; color: var(--ink-faint); font-size: 13px; text-align: center; padding: 12px;
   }
-  /* veil blocks the iframe from swallowing swipes on side cards, and taps
-     to bring a card to the centre; removed on the centre card so it plays */
-  .reel-veil { position: absolute; inset: 0; z-index: 2; cursor: pointer; background: transparent; }
-  .reel-veil.open { pointer-events: none; }
-  .reel-cap { margin-top: 14px; text-align: center; padding: 0 8px; }
-  .reel-title { font-family: 'Beth Ellen', cursive; font-size: clamp(17px, 2.4vw, 22px); margin-bottom: 6px; }
-  .reel-text { font-size: clamp(13px, 1.6vw, 15px); color: var(--ink-light); font-style: italic; line-height: 1.7; max-width: 500px; margin: 0 auto; }
-  .reel-dots { display: flex; justify-content: center; gap: 8px; margin: 14px 0 44px; }
-  .reel-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--dashed); border: none; padding: 0; cursor: pointer; transition: background .25s, transform .25s; }
-  .reel-dot.active { background: var(--ink); transform: scale(1.4); }
+  /* veil catches drags/taps on side cards; removed on the centre card so it plays */
+  .cf-veil { position: absolute; inset: 0; z-index: 2; cursor: grab; }
+  .cf-veil.open { pointer-events: none; }
+  .cf-cap { text-align: center; padding: 0 12px; margin-top: 16px; min-height: 3.4em; }
+  .cf-cap .t { font-family: 'Beth Ellen', cursive; font-size: clamp(17px, 2.4vw, 22px); margin-bottom: 6px; }
+  .cf-cap .d { font-size: clamp(13px, 1.6vw, 15px); color: var(--ink-light); font-style: italic; line-height: 1.7; max-width: 520px; margin: 0 auto; }
+  .cf-arrow {
+    position: absolute; top: 50%; transform: translateY(-50%); z-index: 50;
+    width: 40px; height: 40px; border-radius: 50%;
+    background: var(--parchment); border: 1.5px solid var(--dashed); color: var(--ink);
+    font-family: 'Beth Ellen', cursive; font-size: 22px; line-height: 1; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 2px 8px rgba(42,33,24,0.12);
+    transition: transform 0.15s ease, background 0.2s ease;
+  }
+  .cf-arrow:hover { background: var(--parchment-dark); }
+  .cf-arrow:active { transform: translateY(-50%) scale(0.9); }
+  .cf-prev { left: max(6px, 2vw); }
+  .cf-next { right: max(6px, 2vw); }
+  .cf-dots { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+  .cf-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--dashed); border: none; padding: 0; cursor: pointer; transition: background .25s, transform .25s; }
+  .cf-dot.active { background: var(--ink); transform: scale(1.4); }
+  .cf-row { margin-bottom: 30px; }
+  .cf-row.last { margin-bottom: 46px; }
+  .cf-heading { text-align: center; font-family: 'Beth Ellen', cursive; font-size: clamp(18px, 2.6vw, 24px); margin: 10px 0 2px; }
+  .cf-sub { text-align: center; font-style: italic; color: var(--ink-faint); font-size: clamp(12px, 1.5vw, 14px); margin-bottom: 10px; }
 </style>
 </head>
 <body>
@@ -68,16 +88,25 @@
   </div>
   <div class="ink-divider"></div>
 
-  <p class="body-text" style="text-align:center;max-width:440px;margin:0 auto 4px;font-size:clamp(13px,1.6vw,15px);">
+  <p class="body-text" style="text-align:center;max-width:440px;margin:0 auto 2px;font-size:clamp(13px,1.6vw,15px);">
     swipe through — the one in the middle plays
   </p>
 </div><!-- /page-wrap -->
 
-<!-- ── VIDEO REEL ──
-     Add videos in the VIDEOS array in the script at the bottom of this
-     file: the YouTube id, a title, and a caption/short write-up. ── -->
-<div class="reel" id="reel"></div>
-<div class="reel-dots" id="reelDots"></div>
+<!-- ── VIDEO COVERFLOWS ──
+     Fill in the two lists (WIDE + REELS) in the script below. Each entry
+     is a YouTube id plus a title and caption. Both rows loop endlessly. ── -->
+<section class="cf-row">
+  <div class="cf cf-wide" id="cfWide"></div>
+  <div class="cf-cap" id="capWide"></div>
+</section>
+
+<section class="cf-row last">
+  <div class="cf-heading">reels</div>
+  <div class="cf-sub">short &amp; vertical</div>
+  <div class="cf cf-tall" id="cfTall"></div>
+  <div class="cf-cap" id="capTall"></div>
+</section>
 
 <!-- Northwest → Pigeon's Peak (singing hollow is top-right; peak is top-center = northwest) -->
 <a class="nav-arrow northwest" href="about.html">
@@ -110,112 +139,169 @@
 </a>
 
 <script>
-  // ── VIDEO REEL ──────────────────────────────────────────────────
-  // Add each video here. `id` is the YouTube id — the part after
-  // youtube.com/watch?v=  (or youtu.be/ ). `title` + `caption` show
-  // below the video. Add as many as you like.
-  const VIDEOS = [
+  // ── VIDEO COVERFLOWS ────────────────────────────────────────────
+  // Two rows. Fill each list with your videos:
+  //   id      = the YouTube id (the part after watch?v=  or youtu.be/ )
+  //   title   = shown below the video
+  //   caption = short write-up shown below the video
+  // WIDE  = normal landscape videos.   REELS = vertical shorts/reels.
+  // Both rows loop endlessly — past the last wraps back to the first.
+  const WIDE = [
     { id: '', title: 'a title for this one', caption: 'something about this performance — loose and honest' },
     { id: '', title: 'another one',          caption: 'whose song, and what it means to you' },
     { id: '', title: 'an original',          caption: 'entirely yours — something grown in the hollow' },
   ];
+  const REELS = [
+    { id: '', title: 'a little reel', caption: 'a short vertical moment' },
+    { id: '', title: 'another reel',  caption: 'a snippet, a sketch, a scene' },
+    { id: '', title: 'one more',      caption: 'quick and vertical' },
+  ];
 
-  const reel = document.getElementById('reel');
-  const dotsWrap = document.getElementById('reelDots');
   const ytSrc = id => `https://www.youtube-nocookie.com/embed/${id}?enablejsapi=1&rel=0&playsinline=1`;
-  const cards = () => [...reel.querySelectorAll('.reel-card')];
 
-  function buildReel() {
-    reel.innerHTML = ''; dotsWrap.innerHTML = '';
-    VIDEOS.forEach((v, i) => {
+  // A continuous coverflow: cards are absolutely positioned around a
+  // fractional centre index `pos`; wrap() makes the distance loop, so
+  // there's no first or last — it spins forever in either direction.
+  function coverflow(root, cap, items) {
+    const N = items.length;
+    if (!N) return;
+    const portrait = root.classList.contains('cf-tall');
+    if (cap) cap.innerHTML = '<div class="t"></div><div class="d"></div>';
+
+    const viewport = document.createElement('div'); viewport.className = 'cf-viewport';
+    const stage = document.createElement('div'); stage.className = 'cf-stage';
+    viewport.appendChild(stage);
+
+    const cards = items.map((it, i) => {
       const card = document.createElement('div');
-      card.className = 'reel-card';
-
-      const frame = document.createElement('div');
-      frame.className = 'reel-frame';
-      if (v.id) {
+      card.className = 'cf-card'; card.dataset.i = i;
+      const frame = document.createElement('div'); frame.className = 'cf-frame';
+      if (it.id) {
         const f = document.createElement('iframe');
-        f.src = ytSrc(v.id);
+        f.src = ytSrc(it.id);
         f.allow = 'accelerometer; encrypted-media; gyroscope; picture-in-picture; fullscreen';
-        f.allowFullscreen = true;
-        f.loading = 'lazy';
+        f.allowFullscreen = true; f.loading = 'lazy';
         frame.appendChild(f);
       } else {
-        const ph = document.createElement('div');
-        ph.className = 'reel-ph';
-        ph.textContent = 'add a YouTube id in the VIDEOS list';
-        frame.appendChild(ph);
+        const ph = document.createElement('div'); ph.className = 'cf-ph';
+        ph.textContent = 'add a YouTube id'; frame.appendChild(ph);
       }
-      const veil = document.createElement('div');
-      veil.className = 'reel-veil';
-      veil.addEventListener('click', () => scrollToCard(i));
+      const veil = document.createElement('div'); veil.className = 'cf-veil';
       frame.appendChild(veil);
-
-      const cap = document.createElement('div');
-      cap.className = 'reel-cap';
-      const t = document.createElement('div'); t.className = 'reel-title'; t.textContent = v.title || '';
-      const c = document.createElement('div'); c.className = 'reel-text';  c.textContent = v.caption || '';
-      cap.appendChild(t); cap.appendChild(c);
-
-      card.appendChild(frame); card.appendChild(cap);
-      reel.appendChild(card);
-
-      const dot = document.createElement('button');
-      dot.className = 'reel-dot' + (i === 0 ? ' active' : '');
-      dot.setAttribute('aria-label', 'go to video ' + (i + 1));
-      dot.addEventListener('click', () => scrollToCard(i));
-      dotsWrap.appendChild(dot);
+      card.appendChild(frame); stage.appendChild(card);
+      return card;
     });
-  }
 
-  function pauseCard(card) {
-    const f = card.querySelector('iframe');
-    if (f && f.contentWindow) {
-      f.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+    const prev = document.createElement('button');
+    prev.type = 'button'; prev.className = 'cf-arrow cf-prev'; prev.setAttribute('aria-label', 'previous'); prev.textContent = '‹';
+    const next = document.createElement('button');
+    next.type = 'button'; next.className = 'cf-arrow cf-next'; next.setAttribute('aria-label', 'next'); next.textContent = '›';
+    viewport.appendChild(prev); viewport.appendChild(next);
+    root.appendChild(viewport);
+
+    const dotsWrap = document.createElement('div'); dotsWrap.className = 'cf-dots';
+    const dots = items.map((_, i) => {
+      const d = document.createElement('button');
+      d.type = 'button'; d.className = 'cf-dot'; d.setAttribute('aria-label', 'video ' + (i + 1));
+      d.addEventListener('click', () => animateTo(pos + wrap(i - pos)));
+      dotsWrap.appendChild(d); return d;
+    });
+    root.appendChild(dotsWrap);
+
+    const SPACING = portrait ? 0.9 : 0.72;   // × card width, gap between centres
+    const ROT = 24, DEPTH = 120, WINDOW = 3.2;
+    let pos = 0, anim = null, cardW = 0, lastActive = -1;
+
+    function measure() {
+      cardW = cards[0].offsetWidth;
+      stage.style.height = cards[0].querySelector('.cf-frame').offsetHeight + 'px';
     }
-  }
+    function wrap(x) { x = ((x % N) + N) % N; if (x > N / 2) x -= N; return x; }  // shortest looped distance
 
-  let centre = -1;
-  function updateReel() {
-    const mid = window.innerWidth / 2, list = cards();
-    let best = 0, bestD = Infinity;
-    list.forEach((card, i) => {
-      const r = card.getBoundingClientRect();
-      const c = r.left + r.width / 2;
-      const s = Math.max(-1, Math.min(1, (c - mid) / (window.innerWidth * 0.5)));
-      const t = 1 - Math.min(1, Math.abs(s));               // 1 at centre → 0 far
-      const scale = 0.82 + 0.18 * t;                         // centre biggest
-      card.style.transform = `perspective(1100px) rotateY(${(-s * 20).toFixed(1)}deg) scale(${scale.toFixed(3)})`;
-      card.style.opacity = (0.4 + 0.6 * t).toFixed(3);
-      const d = Math.abs(c - mid);
-      if (d < bestD) { bestD = d; best = i; }
-    });
-    if (best !== centre) {
-      list.forEach((card, i) => {
-        card.querySelector('.reel-veil')?.classList.toggle('open', i === best);
-        if (i !== best) pauseCard(card);                    // stop the video you swiped away from
+    function render(p) {
+      pos = p;
+      const spacing = cardW * SPACING;
+      const cx = stage.clientWidth / 2;
+      cards.forEach((card, i) => {
+        const rel = wrap(i - p);
+        const a = Math.abs(rel);
+        if (a > WINDOW) { card.style.display = 'none'; return; }
+        card.style.display = '';
+        const clamped = Math.max(-1, Math.min(1, rel));
+        const x = cx - cardW / 2 + rel * spacing;
+        const scale = Math.max(0.68, 1 - a * 0.14);
+        card.style.transform =
+          `translate3d(${x.toFixed(1)}px, 0, ${(-a * DEPTH).toFixed(1)}px) rotateY(${(-clamped * ROT).toFixed(1)}deg) scale(${scale.toFixed(3)})`;
+        card.style.opacity = Math.max(0, 1 - a * 0.32).toFixed(3);
+        card.style.zIndex = String(Math.round(100 - a * 10));
+        card.querySelector('.cf-veil').classList.toggle('open', a < 0.5);
       });
-      dotsWrap.querySelectorAll('.reel-dot').forEach((d, i) => d.classList.toggle('active', i === best));
-      centre = best;
+      const active = ((Math.round(p) % N) + N) % N;
+      dots.forEach((d, i) => d.classList.toggle('active', i === active));
+      if (cap) {
+        cap.querySelector('.t').textContent = items[active].title || '';
+        cap.querySelector('.d').textContent = items[active].caption || '';
+      }
     }
+
+    function pauseCard(card) {
+      const f = card.querySelector('iframe');
+      if (f && f.contentWindow) f.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+    }
+    function settle() {
+      const active = ((Math.round(pos) % N) + N) % N;
+      if (active !== lastActive) {
+        cards.forEach((card, i) => { if (i !== active) pauseCard(card); });  // stop the ones you left
+        lastActive = active;
+      }
+    }
+    function animateTo(target) {
+      cancelAnimationFrame(anim);
+      const start = pos, t0 = performance.now(), dur = 430;
+      (function step(now) {
+        const k = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - k, 3);
+        render(start + (target - start) * e);
+        if (k < 1) anim = requestAnimationFrame(step);
+        else { render(target); settle(); }
+      })(performance.now());
+    }
+
+    prev.addEventListener('click', () => animateTo(Math.round(pos) - 1));
+    next.addEventListener('click', () => animateTo(Math.round(pos) + 1));
+
+    // drag (pointer events unify mouse + touch)
+    let dragging = false, startX = 0, startPos = 0, moved = false;
+    stage.addEventListener('pointerdown', (e) => {
+      dragging = true; moved = false; startX = e.clientX; startPos = pos;
+      cancelAnimationFrame(anim);
+      stage.classList.add('dragging');
+      try { stage.setPointerCapture(e.pointerId); } catch (_) {}
+    });
+    stage.addEventListener('pointermove', (e) => {
+      if (!dragging) return;
+      const dx = e.clientX - startX;
+      if (Math.abs(dx) > 5) moved = true;
+      render(startPos - dx / (cardW * SPACING));
+    });
+    function endDrag(e) {
+      if (!dragging) return;
+      dragging = false; stage.classList.remove('dragging');
+      if (moved) { animateTo(Math.round(pos)); }
+      else {
+        const card = e.target.closest && e.target.closest('.cf-card');
+        if (card) animateTo(pos + wrap(+card.dataset.i - pos));  // tap a side card → centre it
+      }
+    }
+    stage.addEventListener('pointerup', endDrag);
+    stage.addEventListener('pointercancel', endDrag);
+
+    window.addEventListener('resize', () => { measure(); render(pos); });
+    measure(); render(0); settle();
+    setTimeout(() => { measure(); render(pos); }, 300);   // re-measure after layout settles
   }
 
-  function scrollToCard(i) {
-    const card = cards()[i]; if (!card) return;
-    const r = card.getBoundingClientRect();
-    reel.scrollBy({ left: (r.left + r.width / 2) - window.innerWidth / 2, behavior: 'smooth' });
-  }
-
-  let ticking = false;
-  reel.addEventListener('scroll', () => {
-    if (ticking) return;
-    ticking = true;
-    requestAnimationFrame(() => { ticking = false; updateReel(); });
-  });
-  window.addEventListener('resize', updateReel);
-
-  buildReel();
-  requestAnimationFrame(updateReel);
+  coverflow(document.getElementById('cfWide'), document.getElementById('capWide'), WIDE);
+  coverflow(document.getElementById('cfTall'), document.getElementById('capTall'), REELS);
 </script>
 <script src="assets/js/nav.js"></script>
 </body>
