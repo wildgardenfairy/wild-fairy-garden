@@ -12,6 +12,44 @@
   .page-hero img { height: min(178px, 40vw); }
   /* raise the landmark higher on the page */
   .page-hero { margin-top: 16px; }
+
+  /* ── VIDEO REEL (coverflow carousel) ── */
+  .page-wrap { padding-bottom: 18px; }
+  .reel {
+    display: flex; gap: 2.5vw;
+    overflow-x: auto; scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch; scrollbar-width: none;
+    padding: 20px 0 8px;
+    padding-inline: calc(50% - min(38vw, 280px));   /* lets first/last centre */
+  }
+  .reel::-webkit-scrollbar { display: none; }
+  .reel-card {
+    flex: 0 0 min(76vw, 560px);
+    scroll-snap-align: center;
+    transform-origin: center center;
+    will-change: transform, opacity;
+  }
+  .reel-frame {
+    position: relative; aspect-ratio: 16 / 9;
+    background: var(--parchment-dark);
+    border-radius: 10px; overflow: hidden;
+    box-shadow: 0 8px 24px rgba(42,33,24,0.18);
+  }
+  .reel-frame iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+  .reel-ph {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    font-style: italic; color: var(--ink-faint); font-size: 14px; text-align: center; padding: 14px;
+  }
+  /* veil blocks the iframe from swallowing swipes on side cards, and taps
+     to bring a card to the centre; removed on the centre card so it plays */
+  .reel-veil { position: absolute; inset: 0; z-index: 2; cursor: pointer; background: transparent; }
+  .reel-veil.open { pointer-events: none; }
+  .reel-cap { margin-top: 14px; text-align: center; padding: 0 8px; }
+  .reel-title { font-family: 'Beth Ellen', cursive; font-size: clamp(17px, 2.4vw, 22px); margin-bottom: 6px; }
+  .reel-text { font-size: clamp(13px, 1.6vw, 15px); color: var(--ink-light); font-style: italic; line-height: 1.7; max-width: 500px; margin: 0 auto; }
+  .reel-dots { display: flex; justify-content: center; gap: 8px; margin: 14px 0 44px; }
+  .reel-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--dashed); border: none; padding: 0; cursor: pointer; transition: background .25s, transform .25s; }
+  .reel-dot.active { background: var(--ink); transform: scale(1.4); }
 </style>
 </head>
 <body>
@@ -30,41 +68,16 @@
   </div>
   <div class="ink-divider"></div>
 
-  <div class="tab-row">
-    <button class="tab active" onclick="fv(this,'all')">all of them</button>
-    <button class="tab" onclick="fv(this,'performance')">performances</button>
-    <button class="tab" onclick="fv(this,'covers')">covers</button>
-    <button class="tab" onclick="fv(this,'originals')">originals</button>
-  </div>
+  <p class="body-text" style="text-align:center;max-width:440px;margin:0 auto 4px;font-size:clamp(13px,1.6vw,15px);">
+    swipe through — the one in the middle plays
+  </p>
+</div><!-- /page-wrap -->
 
-  <div class="video-grid" id="vg">
-    <!-- copy this block for each video — swap VIDEO_ID in the iframe src -->
-    <div class="video-item" data-c="performance">
-      <div class="video-thumb">
-        <!-- <iframe src="https://www.youtube.com/embed/VIDEO_ID" allowfullscreen loading="lazy"></iframe> -->
-        <span>video one</span>
-      </div>
-      <div class="video-title">a title for this one</div>
-      <div class="video-desc">something about this performance — loose and honest</div>
-    </div>
-    <div class="video-item" data-c="covers">
-      <div class="video-thumb">
-        <!-- <iframe src="https://www.youtube.com/embed/VIDEO_ID" allowfullscreen loading="lazy"></iframe> -->
-        <span>video two</span>
-      </div>
-      <div class="video-title">another one</div>
-      <div class="video-desc">whose song, what it means to you</div>
-    </div>
-    <div class="video-item" data-c="originals">
-      <div class="video-thumb">
-        <!-- <iframe src="https://www.youtube.com/embed/VIDEO_ID" allowfullscreen loading="lazy"></iframe> -->
-        <span>video three</span>
-      </div>
-      <div class="video-title">an original</div>
-      <div class="video-desc">entirely yours — something grown in the hollow</div>
-    </div>
-  </div>
-</div>
+<!-- ── VIDEO REEL ──
+     Add videos in the VIDEOS array in the script at the bottom of this
+     file: the YouTube id, a title, and a caption/short write-up. ── -->
+<div class="reel" id="reel"></div>
+<div class="reel-dots" id="reelDots"></div>
 
 <!-- Northwest → Pigeon's Peak (singing hollow is top-right; peak is top-center = northwest) -->
 <a class="nav-arrow northwest" href="about.html">
@@ -97,13 +110,112 @@
 </a>
 
 <script>
-  function fv(btn,cat){
-    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-    btn.classList.add('active');
-    document.querySelectorAll('.video-item').forEach(v=>{
-      v.style.display=(cat==='all'||v.dataset.c===cat)?'':'none';
+  // ── VIDEO REEL ──────────────────────────────────────────────────
+  // Add each video here. `id` is the YouTube id — the part after
+  // youtube.com/watch?v=  (or youtu.be/ ). `title` + `caption` show
+  // below the video. Add as many as you like.
+  const VIDEOS = [
+    { id: '', title: 'a title for this one', caption: 'something about this performance — loose and honest' },
+    { id: '', title: 'another one',          caption: 'whose song, and what it means to you' },
+    { id: '', title: 'an original',          caption: 'entirely yours — something grown in the hollow' },
+  ];
+
+  const reel = document.getElementById('reel');
+  const dotsWrap = document.getElementById('reelDots');
+  const ytSrc = id => `https://www.youtube-nocookie.com/embed/${id}?enablejsapi=1&rel=0&playsinline=1`;
+  const cards = () => [...reel.querySelectorAll('.reel-card')];
+
+  function buildReel() {
+    reel.innerHTML = ''; dotsWrap.innerHTML = '';
+    VIDEOS.forEach((v, i) => {
+      const card = document.createElement('div');
+      card.className = 'reel-card';
+
+      const frame = document.createElement('div');
+      frame.className = 'reel-frame';
+      if (v.id) {
+        const f = document.createElement('iframe');
+        f.src = ytSrc(v.id);
+        f.allow = 'accelerometer; encrypted-media; gyroscope; picture-in-picture; fullscreen';
+        f.allowFullscreen = true;
+        f.loading = 'lazy';
+        frame.appendChild(f);
+      } else {
+        const ph = document.createElement('div');
+        ph.className = 'reel-ph';
+        ph.textContent = 'add a YouTube id in the VIDEOS list';
+        frame.appendChild(ph);
+      }
+      const veil = document.createElement('div');
+      veil.className = 'reel-veil';
+      veil.addEventListener('click', () => scrollToCard(i));
+      frame.appendChild(veil);
+
+      const cap = document.createElement('div');
+      cap.className = 'reel-cap';
+      const t = document.createElement('div'); t.className = 'reel-title'; t.textContent = v.title || '';
+      const c = document.createElement('div'); c.className = 'reel-text';  c.textContent = v.caption || '';
+      cap.appendChild(t); cap.appendChild(c);
+
+      card.appendChild(frame); card.appendChild(cap);
+      reel.appendChild(card);
+
+      const dot = document.createElement('button');
+      dot.className = 'reel-dot' + (i === 0 ? ' active' : '');
+      dot.setAttribute('aria-label', 'go to video ' + (i + 1));
+      dot.addEventListener('click', () => scrollToCard(i));
+      dotsWrap.appendChild(dot);
     });
   }
+
+  function pauseCard(card) {
+    const f = card.querySelector('iframe');
+    if (f && f.contentWindow) {
+      f.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+    }
+  }
+
+  let centre = -1;
+  function updateReel() {
+    const mid = window.innerWidth / 2, list = cards();
+    let best = 0, bestD = Infinity;
+    list.forEach((card, i) => {
+      const r = card.getBoundingClientRect();
+      const c = r.left + r.width / 2;
+      const s = Math.max(-1, Math.min(1, (c - mid) / (window.innerWidth * 0.5)));
+      const t = 1 - Math.min(1, Math.abs(s));               // 1 at centre → 0 far
+      const scale = 0.82 + 0.18 * t;                         // centre biggest
+      card.style.transform = `perspective(1100px) rotateY(${(-s * 20).toFixed(1)}deg) scale(${scale.toFixed(3)})`;
+      card.style.opacity = (0.4 + 0.6 * t).toFixed(3);
+      const d = Math.abs(c - mid);
+      if (d < bestD) { bestD = d; best = i; }
+    });
+    if (best !== centre) {
+      list.forEach((card, i) => {
+        card.querySelector('.reel-veil')?.classList.toggle('open', i === best);
+        if (i !== best) pauseCard(card);                    // stop the video you swiped away from
+      });
+      dotsWrap.querySelectorAll('.reel-dot').forEach((d, i) => d.classList.toggle('active', i === best));
+      centre = best;
+    }
+  }
+
+  function scrollToCard(i) {
+    const card = cards()[i]; if (!card) return;
+    const r = card.getBoundingClientRect();
+    reel.scrollBy({ left: (r.left + r.width / 2) - window.innerWidth / 2, behavior: 'smooth' });
+  }
+
+  let ticking = false;
+  reel.addEventListener('scroll', () => {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(() => { ticking = false; updateReel(); });
+  });
+  window.addEventListener('resize', updateReel);
+
+  buildReel();
+  requestAnimationFrame(updateReel);
 </script>
 <script src="assets/js/nav.js"></script>
 </body>
