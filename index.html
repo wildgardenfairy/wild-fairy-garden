@@ -122,11 +122,72 @@ body::after {
               rgba(245,240,232,0) 100%);
 }
 
+/* ── SCATTER ──
+   Grass tufts through the lower half, birds drifting across the upper half.
+   Lives inside #map-inner, so it pans and zooms with the map itself rather
+   than floating over the screen. JS places everything from a fixed seed, so
+   the arrangement is the same on every load. ── */
+#scatter {
+  position: absolute; inset: 0;
+  pointer-events: none;
+  /* Deliberately NO z-index. A z-index here would make #scatter its own
+     stacking context, and the birds' mix-blend-mode would then blend only
+     against this layer instead of the map underneath — leaving their white
+     backgrounds visible as boxes. Without it, painting still resolves
+     correctly: after #map-bg (DOM order) and below the landmarks (z-index 20). */
+}
+.scatter-el { position: absolute; }
+.scatter-el img { display: block; width: 100%; height: auto; }
+
+/* a tuft's (x,y) marks its BASE, so it plants on the ground rather than
+   floating with its centre on the point */
+.tuft { transform: translate(-50%, -100%); }
+
+/* The bird source art is ink on an opaque white ground (no alpha channel).
+   mix-blend-mode: multiply does NOT work here: #map-inner is transformed, so
+   it forms the stacking context, and the birds would blend against a
+   transparent backdrop inside it rather than against the parchment on <body>
+   — leaving white boxes. Instead #ink-alpha derives alpha from luminance, so
+   white becomes transparent and the linework (and its antialiasing) survives.
+   The centring translate has to be repeated in the keyframes, or the
+   animation would clobber it. */
+.bird {
+  transform: translate(-50%, -50%);
+  animation: birdDrift 9s ease-in-out infinite alternate;
+}
+.bird img { filter: url(#ink-alpha); }
+@keyframes birdDrift {
+  from { transform: translate(-50%, -50%); }
+  to   { transform: translate(calc(-50% + 13px), calc(-50% - 9px)); }
+}
+
+/* ── ORNATE FRAME: pinned to the screen edges at all times. A 9-slice
+   border-image keeps the corner flourishes undistorted at any size. ── */
+#map-frame {
+  display: none;            /* border hidden — remove this line to bring it back */
+  position: fixed;
+  inset: 0;
+  z-index: 36;              /* above the clouds + deco, below the pinned UI (40) */
+  pointer-events: none;
+  border: min(88px, 8vw, 8vh) solid transparent;
+  border-image: url("assets/map/border.png") 135 stretch;
+}
+
 /* ── CLOUD IRIS ──
-   A field of soft cartoon cloud puffs (warm parchment/cream). As you zoom
-   out they grow from the edges inward and the central opening pinches shut
-   like an iris, engulfing the map; zooming in opens it back up. JS sizes &
-   places the puffs and drives each one's scale from the zoom factor. ── */
+   A field of watercolour cloud-cover sprites. As you zoom out they grow from
+   the edges inward and the central opening pinches shut like an iris,
+   engulfing the map; zooming in opens it back up. JS sizes & places the
+   sprites and drives each one's scale from the zoom factor.
+   The mist is a separate fixed layer so it fades with a composite-only
+   opacity change — it seals the gaps between sprites at full zoom-out. ── */
+#cloud-mist {
+  position: fixed; inset: -5%;
+  z-index: 29;              /* behind the sprites (30) */
+  background: var(--parchment);
+  opacity: 0;
+  pointer-events: none;
+  will-change: opacity;
+}
 #cloud-iris {
   position: fixed; inset: 0;
   z-index: 30;
@@ -139,8 +200,9 @@ body::after {
   background: no-repeat center / contain;   /* image set per-element by JS */
   transform: scale(0);
   transform-origin: center;
+  /* transform-only animation: no filters here — a drop-shadow forces the
+     layer to re-rasterise every frame, which makes the close-in lag */
   will-change: transform;
-  filter: drop-shadow(0 5px 7px rgba(74,63,45,0.13));
 }
 
 /* ── DECO OVERLAY ──
@@ -323,16 +385,45 @@ body::after {
   </div>
 </div>
 
-<!-- CLOUD IRIS: hand-drawn cloud puffs that spawn/grow in as you zoom out -->
+<!-- CLOUD IRIS: cloud-cover sprites that spawn/grow in from the edges as you zoom out -->
+<div id="cloud-mist"></div>
 <div id="cloud-iris"></div>
 
 <!-- DECO OVERLAY: plants + text that swoop in alongside the clouds -->
 <div id="cloud-deco"></div>
 
+<!-- ORNATE FRAME: always hugs the screen edges -->
+<div id="map-frame"></div>
+
 <div id="map-stage">
   <div id="map-inner">
 
     <img id="map-bg" src="assets/map/map.svg" alt="">
+
+    <!-- SCATTER: grass along the bottom half, birds across the top half -->
+    <div id="scatter"></div>
+
+    <!-- Turns the birds' opaque white background into real transparency:
+         alpha = sourceAlpha − luminance. White → clear, ink → solid, and the
+         antialiased edges keep their partial alpha.
+
+         The alpha row MUST read from the alpha column (the 4th entry) rather
+         than using a constant in the 5th. With a constant, a fully
+         transparent pixel (0,0,0,0) evaluates to alpha = 0 + 1 = 1, i.e.
+         opaque black — and since a filter region defaults to 120% of the
+         element, that transparent padding renders as a black frame around
+         every bird. Reading source alpha leaves transparent pixels
+         transparent. -->
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+      <defs>
+        <filter id="ink-alpha" color-interpolation-filters="sRGB">
+          <feColorMatrix type="matrix" values="1 0 0 0 0
+                                               0 1 0 0 0
+                                               0 0 1 0 0
+                                               -0.2126 -0.7152 -0.0722 1 0"/>
+        </filter>
+      </defs>
+    </svg>
 
     <a class="landmark" id="lm-pigeon" href="about.html" aria-label="Pigeon's Peak">
       <div class="lm-img-wrap">
@@ -440,7 +531,15 @@ body::after {
   const inner = document.getElementById('map-inner');
   const hint  = document.getElementById('map-hint');
   const cloudIris = document.getElementById('cloud-iris');
+  const cloudMist = document.getElementById('cloud-mist');
   let puffs = [];
+
+  // Wide watercolour cloud-cover artwork. Each sprite keeps its own aspect
+  // ratio so the bands never squash.
+  const PUFF_IMAGES = [
+    { src: 'assets/map/cloud cover 1.png', aspect: 476 / 1463 },
+    { src: 'assets/map/cloud cover 2.png', aspect: 437 / 1465 },
+  ];
 
   // ── CLOUD IRIS CONFIG — tweak everything here ─────────────────────────────
   const CLOUD_CFG = {
@@ -462,19 +561,18 @@ body::after {
     // Lower = snappier pop-in.  Higher = slower, more gradual grow.
     growSpeed: 0.42,
 
-    // ── Puff density ─────────────────────────────────────────────────────────
-    // Grid step as a fraction of the smallest screen dimension.
-    // Smaller fraction = tighter grid = more puffs.
-    // 1/4.4 ≈ 0.227 is current.
-    gridStep: 1 / 4.4,
-
-    // ── Puff size relative to the grid step ──────────────────────────────────
-    // 1.85 = current.  Larger = bigger overlapping puffs, fewer gaps.
-    sizeRatio: 1.85,
+    // ── Sprite size / density ────────────────────────────────────────────────
+    // Sprite width as a fraction of the smallest screen dimension.
+    // Bigger = larger cloud bands and fewer of them.  0.85 = current.
+    spriteScale: 0.85,
 
     // ── Subtle "fly in" zoom on the puffs as they appear ────────────────────
-    // 0 = puffs just scale up flat.  0.16 = current gentle zoom-in effect.
-    flyIn: 0.16,
+    // 0 = puffs just scale up flat.  0.12 = current gentle zoom-in effect.
+    flyIn: 0.12,
+
+    // ── Parchment mist that seals the gaps between sprites ──────────────────
+    // Opacity reached at full zoom-out.  0 = no mist at all.
+    mistMax: 0.88,
 
     // ── Mobile overrides ─────────────────────────────────────────────────────
     // Any key listed here overrides the matching desktop value above
@@ -484,9 +582,9 @@ body::after {
       triggerZoom: 1.2,   // same trigger on mobile — change if you want
       spread:      0.58,
       growSpeed:   0.42,
-      gridStep:    1 / 3.8,   // slightly looser grid on small screens
-      sizeRatio:   1.7,
-      flyIn:       0.16,
+      spriteScale: 1.15,  // wider sprites relative to the narrow screen
+      flyIn:       0.12,
+      mistMax:     0.88,
     },
   };
   // ──────────────────────────────────────────────────────────────────────────
@@ -669,37 +767,40 @@ body::after {
   // view (scale → minScale), and dissipate as you zoom back in (→ frameScale).
   function cloudEase(t){ t = Math.max(0, Math.min(1, t)); return t * t * (3 - 2 * t); }
 
-  // Lay out a staggered grid of hand-drawn cloud puffs (mixed shapes,
-  // sizes, rotations). Each records its distance from centre — edge puffs
-  // spawn first, centre last, so the cover closes inward as you zoom out.
+  // Lay out a staggered grid of watercolour cloud-cover sprites (mixed
+  // artwork, sizes, rotations). Each records its distance from centre — edge
+  // sprites spawn first, centre last, so the cover closes inward as you zoom
+  // out. The sprites are wide bands, so a few dozen elements cover the screen
+  // and the per-frame cost stays low.
   function buildPuffs() {
     if (!cloudIris) return;
     const cfg = activeCfg();
     const W = window.innerWidth, H = window.innerHeight;
-    const g = Math.max(96, Math.min(W, H) * cfg.gridStep);
-    const size = g * cfg.sizeRatio;
+    const sw = Math.max(340, Math.min(W, H) * cfg.spriteScale);
+    const gx = sw * 0.48, gy = sw * 0.33 * 0.62;
     const cx = W / 2, cy = H / 2, maxD = Math.hypot(cx, cy);
-    const cols = Math.ceil(W / g) + 3, rows = Math.ceil(H / g) + 3;
+    const cols = Math.ceil(W / gx) + 2, rows = Math.ceil(H / gy) + 2;
     const frag = document.createDocumentFragment();
     puffs = [];
-    let seed = 1;
+    let seed = 7;
     const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
     for (let r = 0; r < rows; r++) {
       for (let c = 0; c < cols; c++) {
-        const px = (c - 1) * g + (r % 2 ? g / 2 : 0) + (rnd() * 0.5 - 0.25) * g;
-        const py = (r - 1) * g + (rnd() * 0.4 - 0.2) * g;
+        const px = (c - 1) * gx + (r % 2 ? gx / 2 : 0) + (rnd() * 0.5 - 0.25) * gx;
+        const py = (r - 1) * gy + (rnd() * 0.4 - 0.2) * gy;
         const d = Math.min(1, Math.hypot(px - cx, py - cy) / maxD);
         const el = document.createElement('div');
         el.className = 'puff';
-        const puffFile = ['assets/map/puff.svg', 'assets/map/puff1.svg', 'assets/map/puff2.svg'][Math.floor(rnd() * 3)];
-        el.style.backgroundImage = `url("${puffFile}")`;
-        const s = size * (0.8 + rnd() * 0.55);
-        el.style.width = el.style.height = s.toFixed(0) + 'px';
-        el.style.left = (px - s / 2).toFixed(0) + 'px';
-        el.style.top  = (py - s / 2).toFixed(0) + 'px';
-        const rot = (rnd() * 22 - 11).toFixed(1);
+        const art = PUFF_IMAGES[Math.floor(rnd() * PUFF_IMAGES.length)];
+        el.style.backgroundImage = `url("${art.src}")`;
+        const w = sw * (0.85 + rnd() * 0.4), h = w * art.aspect;
+        el.style.width  = w.toFixed(0) + 'px';
+        el.style.height = h.toFixed(0) + 'px';
+        el.style.left = (px - w / 2).toFixed(0) + 'px';
+        el.style.top  = (py - h / 2).toFixed(0) + 'px';
+        const rot = (rnd() * 10 - 5).toFixed(1);
         el._rot = `rotate(${rot}deg) scaleX(${rnd() > 0.5 ? -1 : 1})`;
-        el._start = (1 - d) * cfg.spread;   // edge puffs (d≈1) spawn first
+        el._start = (1 - d) * cfg.spread;   // edge sprites (d≈1) spawn first
         frag.appendChild(el);
         puffs.push(el);
       }
@@ -716,12 +817,17 @@ body::after {
     // The whole clouds → foliage → map reveal plays out across this range.
     let f = (frameScale - scale) / (frameScale - minScale);
     f = Math.max(0, Math.min(1, f));
-
     // Clouds only occupy the TOP band of the zoom-out range: fully present
     // at f = 1, fully parted by f = cloudEnd. Below that the foliage takes
-    // over. Remap f into the cloud band so the puffs finish early.
+    // over. Remap f into the cloud band (cI) so the puffs finish early.
     const cI = clamp01((f - PHASE.cloudEnd) / (1 - PHASE.cloudEnd));
     if (cloudIris) cloudIris.style.opacity = cI > 0.001 ? 1 : 0;
+    // Mist joins in the last stretch of the close, once the sprites have
+    // mostly sealed — driven by cI so it seals in step with the cloud phase
+    // (not raw f), keeping the map vivid through the centre opening.
+    if (cloudMist) {
+      cloudMist.style.opacity = (cloudEase((cI - 0.45) / 0.55) * cfg.mistMax).toFixed(3);
+    }
     const zoom = 1 + cI * cfg.flyIn;
     for (const el of puffs) {
       let s = (cI - el._start) / cfg.growSpeed;
@@ -751,6 +857,161 @@ body::after {
     clampTranslate();
     apply();
   }
+
+  // ── SCATTER CONFIG — grass low, birds high. Tweak everything here ───────
+  //   count    how many of that kind to place
+  //   band     vertical slice of the world it may occupy (0 = top, 1 = bottom)
+  //   width    min/max width in world px (the map world is 1440×900)
+  //   opacity  min/max — the spread is what gives the field some depth
+  //   rotate   max ± tilt in degrees
+  const SCATTER_CFG = {
+    grass: {
+      srcs: ['assets/map/grass-1.svg', 'assets/map/grass-2.svg', 'assets/map/grass-3.svg',
+             'assets/map/grass-4.svg', 'assets/map/grass-5.svg'],
+      count: 30, band: [0.52, 0.94], width: [30, 68], opacity: [0.55, 0.95], rotate: 7,
+    },
+    birds: {
+      srcs: ['assets/map/birds-1.png', 'assets/map/birds-2.png',
+             'assets/map/birds-3.png', 'assets/map/birds-4.png'],
+      // avoidMap keeps birds off the map artwork itself — they only land in
+      // the open sky around it. band can stay generous because MAP_INK does
+      // the real filtering.
+      count: 14, band: [0.00, 0.52], width: [36, 76], opacity: [0.50, 0.85], rotate: 5,
+      avoidMap: true,
+    },
+  };
+
+  // ── WHERE THE MAP ARTWORK ACTUALLY IS ───────────────────────────────────
+  // A coarse 40×20 ink map of map.svg, measured off the artwork itself.
+  // ' ' = clear paper, '.' '+' '#' = increasing ink density. A bounding box is
+  // no use here: the map has stray marks out to nearly every edge, so its real
+  // shape is this diagonal band with open sky at the top and upper-left.
+  // Birds test against this so they only ever land on clear paper.
+  // If map.svg changes, this needs regenerating.
+  const MAP_INK = [
+    "                 ####++++               ",
+    "              #######   .+.             ",
+    "           . +#+ +###   . +++           ",
+    "         .  ##+  ####++ .  .#           ",
+    "           +#.  ++ ##     ++  .+        ",
+    "           ##  +   + ++#+# ####         ",
+    "          +#  +.     ## +  ####         ",
+    "           ++           . +.##          ",
+    "           +++#+##  +#+ .+.+            ",
+    "       ## + +        ###. ++            ",
+    "       #       +    + +##++#            ",
+    "      +#  +       + + + #. +            ",
+    "     +##+ ##+   + .+ +                  ",
+    "   .##+###############+++               ",
+    "+####+##++++.++..  . ++#                ",
+    "#++# +. +#####+++++++                   ",
+    "+###     ++.                            ",
+    "#.                                      ",
+    "                                        ",
+    "                                        ",
+  ];
+  const INK_COLS = 40, INK_ROWS = 20;
+
+  // #map-bg draws map.svg at left:240 top:120 width:90%, then scaleX(1.6)
+  // about its own centre. Replicate that to test a world point against MAP_INK.
+  // (The stretch pushes the artwork out to x −149…1925, wider than the world.)
+  const IMG_W    = 0.9 * 1440;
+  const IMG_H    = IMG_W * (1607 / 2824);
+  const IMG_SW   = IMG_W * 1.6;
+  const IMG_LEFT = 240 + IMG_W / 2 - IMG_SW / 2;
+  const IMG_TOP  = 120;
+
+  // margin = how many cells of clearance to demand around the point
+  function mapInkAt(wx, wy, margin) {
+    const fx = (wx - IMG_LEFT) / IMG_SW;
+    const fy = (wy - IMG_TOP) / IMG_H;
+    if (fy < 0 || fy > 1) return false;      // above or below the artwork entirely
+    const col = Math.floor(fx * INK_COLS);
+    const row = Math.floor(fy * INK_ROWS);
+    for (let r = row - margin; r <= row + margin; r++) {
+      if (r < 0 || r >= INK_ROWS) continue;
+      for (let c = col - margin; c <= col + margin; c++) {
+        if (c < 0 || c >= INK_COLS) continue;
+        if (MAP_INK[r][c] !== ' ') return true;
+      }
+    }
+    return false;
+  }
+
+  // Place the scatter once, in world coordinates. Nothing here depends on the
+  // viewport, so unlike the puffs it never needs rebuilding on resize.
+  function buildScatter() {
+    const layer = document.getElementById('scatter');
+    if (!layer) return;
+    const W = 1440, H = 900;          // #map-inner's fixed world size
+
+    // Read the landmark boxes straight from the DOM and keep clear of them, so
+    // nothing lands on a clickable place. (.landmark is translateX(-50%), so
+    // its visual box is centred on offsetLeft.)
+    const pad = 24;
+    const keepOut = [...document.querySelectorAll('.landmark')].map(el => ({
+      x: el.offsetLeft - el.offsetWidth / 2 - pad,
+      y: el.offsetTop - pad,
+      w: el.offsetWidth + pad * 2,
+      h: el.offsetHeight + pad * 2,
+    }));
+    const blocked = (x, y) =>
+      keepOut.some(r => x > r.x && x < r.x + r.w && y > r.y && y < r.y + r.h);
+
+    let seed = 23;
+    const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    const frag = document.createDocumentFragment();
+    let skipped = 0;   // couldn't find a clear spot — reported below, never silent
+
+    for (const kind of ['grass', 'birds']) {
+      const cfg = SCATTER_CFG[kind];
+      for (let i = 0; i < cfg.count; i++) {
+        // Re-roll if we land somewhere disallowed, then give up on this one
+        // rather than force an overlap. Birds additionally have to miss the
+        // map artwork, which rules out most of the frame — hence more tries.
+        const reject = (px, py) =>
+          blocked(px, py) || (cfg.avoidMap && mapInkAt(px, py, 1));
+        let x, y, tries = 0;
+        const maxTries = cfg.avoidMap ? 120 : 24;
+        const slice = W / cfg.count;
+        do {
+          // Aim at this item's own slice of the width first. Plain rejection
+          // sampling clumps everything wherever it happens to fit (all 14 birds
+          // ended up in the upper-left), so spread them deliberately; only fall
+          // back to anywhere-goes once a slice proves to be fully blocked.
+          x = tries < maxTries * 0.5 ? (i + rnd()) * slice : rnd() * W;
+          y = (cfg.band[0] + rnd() * (cfg.band[1] - cfg.band[0])) * H;
+        } while (reject(x, y) && ++tries < maxTries);
+        if (reject(x, y)) { skipped++; continue; }
+
+        const w = cfg.width[0] + rnd() * (cfg.width[1] - cfg.width[0]);
+        const wrap = document.createElement('div');
+        wrap.className = 'scatter-el ' + (kind === 'grass' ? 'tuft' : 'bird');
+        wrap.style.left    = x.toFixed(1) + 'px';
+        wrap.style.top     = y.toFixed(1) + 'px';
+        wrap.style.width   = w.toFixed(1) + 'px';
+        wrap.style.opacity = (cfg.opacity[0] + rnd() * (cfg.opacity[1] - cfg.opacity[0])).toFixed(2);
+        if (kind === 'birds') {   // stagger so they don't drift in lockstep
+          wrap.style.animationDuration = (7 + rnd() * 7).toFixed(1) + 's';
+          wrap.style.animationDelay    = (-rnd() * 9).toFixed(1) + 's';
+        }
+
+        const img = document.createElement('img');
+        img.src = cfg.srcs[Math.floor(rnd() * cfg.srcs.length)];
+        img.alt = '';
+        img.style.transform =
+          `rotate(${(rnd() * cfg.rotate * 2 - cfg.rotate).toFixed(1)}deg) scaleX(${rnd() > 0.5 ? -1 : 1})`;
+        wrap.appendChild(img);
+        frag.appendChild(wrap);
+      }
+    }
+    layer.replaceChildren(frag);
+    if (skipped) {
+      console.warn(`[scatter] ${skipped} item(s) had nowhere clear to go — ` +
+                   `lower the count, widen the band, or relax the map margin.`);
+    }
+  }
+  buildScatter();
 
   function recomputeBounds(keepView) {
     frameScale = fitScale();          // the framed overview
