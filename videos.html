@@ -59,8 +59,11 @@
     font-style: italic; color: var(--ink-light); font-size: 13px; text-align: center; padding: 12px;
   }
   /* veil catches drags/taps on side cards; removed on the centre card so it plays */
+  /* the veil sits over EVERY card (centre included) so a trackpad swipe or
+     drag is caught anywhere; a tap on the centre engages the video below */
   .cf-veil { position: absolute; inset: 0; z-index: 2; cursor: grab; }
-  .cf-veil.open { pointer-events: none; }
+  /* once engaged (tapped), let clicks reach the video's own controls */
+  .cf-card.live .cf-veil { pointer-events: none; cursor: default; }
   .cf-cap { text-align: center; padding: 0 12px; margin-top: 16px; min-height: 3.4em; }
   .cf-cap .t { font-family: 'Beth Ellen', cursive; font-size: clamp(17px, 2.4vw, 22px); margin-bottom: 6px; }
   .cf-cap .d { font-size: clamp(13px, 1.6vw, 15px); color: var(--ink-light); font-style: italic; line-height: 1.7; max-width: 520px; margin: 0 auto; }
@@ -97,7 +100,7 @@
   <div class="ink-divider"></div>
 
   <p class="body-text" style="text-align:center;max-width:440px;margin:0 auto 2px;font-size:clamp(13px,1.6vw,15px);">
-    swipe through — the one in the middle plays
+    swipe through — tap the middle one to play
   </p>
 </div><!-- /page-wrap -->
 
@@ -268,7 +271,6 @@
           `translate3d(${x.toFixed(1)}px, 0, ${(-a * DEPTH).toFixed(1)}px) rotateY(${(-clamped * ROT).toFixed(1)}deg) scale(${scale.toFixed(3)})`;
         card.style.opacity = Math.max(0, 1 - a * 0.32).toFixed(3);
         card.style.zIndex = String(Math.round(100 - a * 10));
-        card.querySelector('.cf-veil').classList.toggle('open', a < 0.5);
       });
       const active = ((Math.round(p) % N) + N) % N;
       dots.forEach((d, i) => d.classList.toggle('active', i === active));
@@ -290,6 +292,7 @@
       }
     }
     function animateTo(target) {
+      disengage();
       cancelAnimationFrame(anim);
       const start = pos, t0 = performance.now(), dur = 430;
       (function step(now) {
@@ -326,6 +329,7 @@
     root.addEventListener('wheel', (e) => {
       if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;   // vertical intent → let the page scroll
       e.preventDefault();
+      disengage();
       cancelAnimationFrame(anim);
       render(pos + e.deltaX / (cardW * SPACING));
       clearTimeout(wheelTO);
@@ -336,6 +340,7 @@
     let dragging = false, startX = 0, startPos = 0, moved = false;
     stage.addEventListener('pointerdown', (e) => {
       dragging = true; moved = false; startX = e.clientX; startPos = pos;
+      disengage();
       cancelAnimationFrame(anim);
       stage.classList.add('dragging');
       stage.focus({ preventScroll: true });   // so arrow keys drive this row
@@ -352,12 +357,35 @@
       dragging = false; stage.classList.remove('dragging');
       if (moved) { animateTo(Math.round(pos)); }
       else {
-        const card = e.target.closest && e.target.closest('.cf-card');
-        if (card) animateTo(pos + wrap(+card.dataset.i - pos));  // tap a side card → centre it
+        const cardEl = e.target.closest && e.target.closest('.cf-card');
+        if (cardEl) {
+          const i = +cardEl.dataset.i;
+          const active = ((Math.round(pos) % N) + N) % N;
+          if (i === active) engage(cardEl);              // tap the centre → play it (controls become live)
+          else animateTo(pos + wrap(i - pos));           // tap a side card → centre it
+        }
       }
     }
     stage.addEventListener('pointerup', endDrag);
     stage.addEventListener('pointercancel', endDrag);
+
+    // Engage = the centre video becomes a live player (its own controls work).
+    // Any navigation disengages it, so the veil goes back to catching swipes.
+    let liveCard = null;
+    function engage(cardEl) {
+      if (liveCard === cardEl) return;
+      disengage();
+      liveCard = cardEl; cardEl.classList.add('live');
+      const f = cardEl.querySelector('iframe');
+      if (f && f.contentWindow) f.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+    }
+    function disengage() {
+      if (!liveCard) return;
+      liveCard.classList.remove('live');
+      const f = liveCard.querySelector('iframe');
+      if (f && f.contentWindow) f.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+      liveCard = null;
+    }
 
     window.addEventListener('resize', () => { measure(); render(pos); });
     measure(); render(0); settle();
