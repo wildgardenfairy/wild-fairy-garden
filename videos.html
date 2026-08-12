@@ -43,7 +43,7 @@
   .cf-wide .cf-frame { aspect-ratio: 16 / 9; }
   .cf-tall .cf-frame { aspect-ratio: 9 / 16; }
   /* the video sits inset so the drawn frame reads as a border around it */
-  .cf-frame iframe { position: absolute; inset: var(--fin); width: auto; height: auto; border: 0; border-radius: 2px; background: #000; }
+  .cf-frame iframe { position: absolute; top: var(--fin); left: var(--fin); width: calc(100% - 2 * var(--fin)); height: calc(100% - 2 * var(--fin)); border: 0; border-radius: 2px; background: #000; }
   /* hand-drawn botanical frame: wobbly border + leaf sprigs at two corners */
   .cf-deco {
     position: absolute; inset: 0; z-index: 3; pointer-events: none;
