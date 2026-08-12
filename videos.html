@@ -350,9 +350,12 @@
     }, { passive: false });
 
     // drag (pointer events unify mouse + touch)
-    let dragging = false, startX = 0, startPos = 0, moved = false;
+    let dragging = false, startX = 0, startPos = 0, moved = false, startCard = null;
     stage.addEventListener('pointerdown', (e) => {
       dragging = true; moved = false; startX = e.clientX; startPos = pos;
+      // record the card under the press NOW — setPointerCapture below will
+      // retarget later events to the stage, so e.target is unreliable in pointerup
+      startCard = e.target.closest ? e.target.closest('.cf-card') : null;
       disengage();
       cancelAnimationFrame(anim);
       stage.classList.add('dragging');
@@ -369,14 +372,11 @@
       if (!dragging) return;
       dragging = false; stage.classList.remove('dragging');
       if (moved) { animateTo(Math.round(pos)); }
-      else {
-        const cardEl = e.target.closest && e.target.closest('.cf-card');
-        if (cardEl) {
-          const i = +cardEl.dataset.i;
-          const active = ((Math.round(pos) % N) + N) % N;
-          if (i === active) engage(cardEl);              // tap the centre → play it (controls become live)
-          else animateTo(pos + wrap(i - pos));           // tap a side card → centre it
-        }
+      else if (startCard) {
+        const i = +startCard.dataset.i;
+        const active = ((Math.round(pos) % N) + N) % N;
+        if (i === active) engage(startCard);           // tap the centre → play it (controls become live)
+        else animateTo(pos + wrap(i - pos));           // tap a side card → centre it
       }
     }
     stage.addEventListener('pointerup', endDrag);
