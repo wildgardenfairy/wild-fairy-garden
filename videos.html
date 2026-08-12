@@ -69,7 +69,14 @@
   .cf-dot.active { background: var(--ink); transform: scale(1.4); }
   .cf-row { margin-bottom: 30px; }
   .cf-row.last { margin-bottom: 46px; }
-  .cf-heading { text-align: center; font-family: 'Beth Ellen', cursive; font-size: clamp(18px, 2.6vw, 24px); margin: 10px 0 2px; }
+  .cf-heading { display: flex; align-items: center; justify-content: center; gap: 16px; font-family: 'Beth Ellen', cursive; font-size: clamp(18px, 2.6vw, 24px); margin: 10px 0 2px; }
+  .cf-nav {
+    background: none; border: none; padding: 2px 4px; cursor: pointer;
+    font-family: 'Beth Ellen', cursive; font-size: clamp(20px, 2.8vw, 28px); line-height: 1;
+    color: var(--ink-faint); transition: color 0.2s, transform 0.15s;
+  }
+  .cf-nav:hover { color: var(--ink); }
+  .cf-nav:active { transform: scale(0.82); }
   .cf-sub { text-align: center; font-style: italic; color: var(--ink-faint); font-size: clamp(12px, 1.5vw, 14px); margin-bottom: 10px; }
 </style>
 </head>
@@ -98,14 +105,22 @@
      Fill in the two lists (WIDE + REELS) in the script below. Each entry
      is a YouTube id plus a title and caption. Both rows loop endlessly. ── -->
 <section class="cf-row">
-  <div class="cf-heading">reels</div>
+  <div class="cf-heading">
+    <button type="button" class="cf-nav cf-nav-prev" aria-label="previous reel">‹</button>
+    <span>reels</span>
+    <button type="button" class="cf-nav cf-nav-next" aria-label="next reel">›</button>
+  </div>
   <div class="cf-sub">short &amp; vertical</div>
   <div class="cf cf-tall" id="cfTall"></div>
   <div class="cf-cap" id="capTall"></div>
 </section>
 
 <section class="cf-row last">
-  <div class="cf-heading">videos</div>
+  <div class="cf-heading">
+    <button type="button" class="cf-nav cf-nav-prev" aria-label="previous video">‹</button>
+    <span>videos</span>
+    <button type="button" class="cf-nav cf-nav-next" aria-label="next video">›</button>
+  </div>
   <div class="cf-sub">sit and stay a while</div>
   <div class="cf cf-wide" id="cfWide"></div>
   <div class="cf-cap" id="capWide"></div>
@@ -285,6 +300,15 @@
       })(performance.now());
     }
 
+    // ‹ › arrows beside the row title
+    const row = root.closest('.cf-row');
+    if (row) {
+      const navPrev = row.querySelector('.cf-nav-prev');
+      const navNext = row.querySelector('.cf-nav-next');
+      if (navPrev) navPrev.addEventListener('click', () => animateTo(Math.round(pos) - 1));
+      if (navNext) navNext.addEventListener('click', () => animateTo(Math.round(pos) + 1));
+    }
+
     // keyboard: ← / → step through the focused carousel
     stage.tabIndex = 0;
     stage.setAttribute('role', 'group');
@@ -295,9 +319,11 @@
     });
 
     // trackpad: a horizontal two-finger swipe scrubs through the row,
-    // then snaps to the nearest video when the swipe stops
+    // then snaps to the nearest video when the swipe stops. Listen on the
+    // whole row (root, full width) so it responds across the entire span,
+    // not just where a card happens to sit.
     let wheelTO = null;
-    stage.addEventListener('wheel', (e) => {
+    root.addEventListener('wheel', (e) => {
       if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;   // vertical intent → let the page scroll
       e.preventDefault();
       cancelAnimationFrame(anim);
