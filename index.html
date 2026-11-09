@@ -79,7 +79,7 @@ body::after {
   position: fixed;
   top: max(14px, env(safe-area-inset-top));
   left: max(16px, env(safe-area-inset-left));
-  z-index: 40;
+  z-index: 24;                   /* UNDER the clouds (30) — revealed as they part */
   display: flex; flex-direction: column; align-items: center; gap: 1px;
   pointer-events: none;          /* never blocks a pan that starts on it */
 }
@@ -114,7 +114,7 @@ body::after {
   top: 0; left: 0;
   width: min(460px, 88vw);
   height: 340px;
-  z-index: 35;
+  z-index: 23;                   /* with the compass, UNDER the clouds (30) */
   pointer-events: none;
   background: radial-gradient(190px 175px at 96px 122px,
               rgba(245,240,232,0.82) 0%,
@@ -203,6 +203,26 @@ body::after {
   /* transform-only animation: no filters here — a drop-shadow forces the
      layer to re-rasterise every frame, which makes the close-in lag */
   will-change: transform;
+}
+
+/* ── ZOOM WORDS ──
+   A line centred in the middle of the screen, floating ABOVE the clouds.
+   As you zoom in it grows and fades, so you "fall through" the words
+   before the clouds part. JS drives opacity + scale from the zoom. ── */
+#zoom-words {
+  position: fixed; left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 33;                   /* above the clouds (30), below the frame (36) */
+  pointer-events: none;
+  width: min(640px, 86vw);
+  text-align: center;
+  font-family: 'Beth Ellen', cursive;
+  font-size: clamp(18px, 3.4vw, 34px);
+  line-height: 1.5;
+  color: var(--ink);
+  text-shadow: 0 0 16px var(--parchment), 0 0 30px var(--parchment), 0 1px 3px var(--parchment);
+  opacity: 0;
+  will-change: transform, opacity;
 }
 
 /* ── DECO OVERLAY ──
@@ -389,6 +409,9 @@ body::after {
 <div id="cloud-mist"></div>
 <div id="cloud-iris"></div>
 
+<!-- ZOOM WORDS: centred line that floats above the clouds; you fall through it -->
+<div id="zoom-words">welcome to our garden.  for the thoughtful blooms.  you're safe here</div>
+
 <!-- DECO OVERLAY: plants + text that swoop in alongside the clouds -->
 <div id="cloud-deco"></div>
 
@@ -532,6 +555,7 @@ body::after {
   const hint  = document.getElementById('map-hint');
   const cloudIris = document.getElementById('cloud-iris');
   const cloudMist = document.getElementById('cloud-mist');
+  const zoomWords = document.getElementById('zoom-words');
   let puffs = [];
 
   // Wide watercolour cloud-cover artwork. Each sprite keeps its own aspect
@@ -614,13 +638,9 @@ body::after {
   //
   // SVG assignments below are placeholders — swap the numbers to match your drawings.
   const DECO_ITEMS = [
-
-    // ── Full-width tagline across the top ────────────────────────────────────
-    { type:'text', content:'welcome to our garden.  for the thoughtful blooms.  you\'re safe here',
-      cls:'deco-tagline', x:'2%', y:'35%', from:'top-left', dist:12, at:0.02 },
-
-    // ── Plant illustrations removed for now ──────────────────────────────────
-    // To bring them back, add entries like:
+    // The welcome tagline now lives in its own centred #zoom-words layer
+    // (above the clouds). Plant illustrations are removed for now — to bring
+    // them back, add entries like:
     //   { type:'svg', src:'assets/illustrations/plant drawing 1.svg',
     //     x:'0%', y:'50%', width:'22vw', from:'bottom-left', dist:18, at:0.0 },
   ];
@@ -807,6 +827,15 @@ body::after {
     }
 
     updateDeco(f);   // foliage layer, driven by the same f value
+
+    // Words float ABOVE the clouds, on the SAME mechanism (cI) as the cloud
+    // cover: present at full zoom-out, then they grow toward you and fade as
+    // you zoom in — so you "fall through" the words while the clouds part.
+    if (zoomWords) {
+      zoomWords.style.opacity = cI.toFixed(3);
+      const ws = 1 + (1 - cI) * 1.8;                 // 1× far away → ~2.8× rushing past
+      zoomWords.style.transform = `translate(-50%, -50%) scale(${ws.toFixed(3)})`;
+    }
   }
 
   // Zoom by `factor` while keeping the screen point (px,py) anchored.
