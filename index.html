@@ -832,8 +832,11 @@ body::after {
     // cover: present at full zoom-out, then they grow toward you and fade as
     // you zoom in — so you "fall through" the words while the clouds part.
     if (zoomWords) {
-      zoomWords.style.opacity = cI.toFixed(3);
-      const ws = 1 + (1 - cI) * 1.8;                 // 1× far away → ~2.8× rushing past
+      // Fade: hold while the clouds are full, then drop faster toward the end
+      // and reach 0 well before the cloud layer clears (by cI ≈ 0.22).
+      const w = clamp01((cI - 0.22) / 0.78);
+      zoomWords.style.opacity = (1 - (1 - w) * (1 - w)).toFixed(3);   // ease-out: quicker at the end
+      const ws = 1 + (1 - cI) * 1.8;                                  // 1× far away → ~2.8× rushing past
       zoomWords.style.transform = `translate(-50%, -50%) scale(${ws.toFixed(3)})`;
     }
   }
