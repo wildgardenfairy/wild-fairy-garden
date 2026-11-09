@@ -8,11 +8,108 @@
 <link href="https://fonts.googleapis.com/css2?family=Beth+Ellen&family=Mynerve&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/css/shared.css">
 <style>
-  .leaf-note { margin-top:28px; text-align:center; font-style:italic; font-size:clamp(13px,1.6vw,16px); color:var(--ink-faint); line-height:1.75; }
-  /* slightly larger hero landmark on this page */
-  .page-hero img { height: min(178px, 40vw); }
-  /* raise the landmark slightly higher on the page */
-  .page-hero { margin-top: 32px; }
+  /* ── FARAWAY TREE: radial paths ──
+     The tree sits at the centre; six "paths" fan out from it. Five lead to
+     the other landmarks, one leads up the tree. The icons are placeholders
+     for now — drop a real SVG into assets/paths/ with the matching filename
+     and it replaces the emoji automatically. ── */
+
+  .tree-page {
+    position: relative; z-index: 1;
+    min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 64px 16px 60px;
+    animation: pageIn 0.6s ease both;
+  }
+  .tree-title {
+    text-align: center; margin-bottom: 4px;
+  }
+  .tree-title h1 {
+    font-family: 'Beth Ellen', cursive;
+    font-size: clamp(26px, 4.5vw, 40px); line-height: 1.1;
+  }
+  .tree-title .sub {
+    font-size: clamp(13px, 1.7vw, 16px); color: var(--ink-light);
+    font-style: italic; margin-top: 4px;
+  }
+
+  /* ── The radial diagram ── */
+  .tree-diagram {
+    position: relative;
+    width: min(760px, 94vw);
+    aspect-ratio: 1 / 0.92;
+    margin: 6px auto 0;
+  }
+  /* hand-drawn dashed trails behind everything */
+  .tree-paths {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    z-index: 1; pointer-events: none;
+  }
+  /* the tree in the centre */
+  .tree-centre {
+    position: absolute; left: 50%; top: 48%;
+    width: min(200px, 30%); height: auto; z-index: 2;
+    filter: drop-shadow(0 5px 13px rgba(42,33,24,0.12));
+    animation: treeFloat 6s ease-in-out infinite;
+  }
+  @keyframes treeFloat {
+    0%,100% { transform: translate(-50%, -50%); }
+    50%     { transform: translate(-50%, calc(-50% - 7px)); }
+  }
+
+  /* ── A single path (icon placeholder + label) ── */
+  .tree-path {
+    position: absolute; left: var(--x); top: var(--y);
+    transform: translate(-50%, -50%);
+    z-index: 3;
+    display: flex; flex-direction: column; align-items: center; gap: 7px;
+    width: 130px; text-align: center;
+    text-decoration: none; color: var(--ink);
+    cursor: pointer;
+  }
+  .path-ic {
+    width: 66px; height: 66px; border-radius: 50%;
+    border: 1.5px dashed var(--dashed);
+    background: var(--parchment);
+    display: flex; align-items: center; justify-content: center;
+    transition: transform 0.3s cubic-bezier(.34,1.56,.64,1), border-color 0.2s, box-shadow 0.3s;
+  }
+  .path-ic img { width: 60%; height: 60%; object-fit: contain; display: block; }
+  .path-ic-fallback { display: none; align-items: center; justify-content: center; font-size: 26px; }
+  .tree-path:hover .path-ic {
+    transform: translateY(-4px) scale(1.08);
+    border-color: var(--ink);
+    box-shadow: 0 6px 16px rgba(42,33,24,0.15);
+  }
+  .path-name {
+    font-family: 'Beth Ellen', cursive;
+    font-size: clamp(14px, 1.8vw, 17px); line-height: 1.15;
+  }
+  .path-dest {
+    font-size: 11px; color: var(--ink-faint); font-style: italic;
+    border-bottom: 1px solid transparent; transition: border-color 0.2s;
+  }
+  .tree-path:hover .path-dest { border-color: rgba(42,33,24,0.25); }
+
+  /* ── Text space below the tree (fill this in) ── */
+  .tree-text {
+    max-width: 560px; margin: 8px auto 0; text-align: center;
+    color: var(--ink-light);
+  }
+  .tree-text .placeholder {
+    font-style: italic; color: var(--ink-faint);
+    font-size: clamp(13px, 1.7vw, 16px); line-height: 1.8;
+  }
+
+  /* ── Mobile: shrink the nodes so the radial still fits ── */
+  @media (max-width: 640px) {
+    .tree-page { padding: 56px 10px 90px; }
+    .tree-diagram { aspect-ratio: 1 / 1.05; }
+    .tree-path { width: 92px; gap: 5px; }
+    .path-ic { width: 50px; height: 50px; }
+    .path-ic-fallback { font-size: 20px; }
+    .tree-centre { width: min(140px, 30%); }
+  }
 </style>
 </head>
 <body>
@@ -23,97 +120,118 @@
   <span class="rm-lbl">back to map</span>
 </a>
 
-<div class="page-wrap">
-  <div class="page-hero">
-    <img src="assets/landmarks/farawaytree.svg" alt="Faraway Tree" onerror="this.style.display='none'">
+<div class="tree-page">
+
+  <div class="tree-title">
     <h1>faraway tree</h1>
-    <p class="sub">climb up — there are stories in every leaf</p>
-  </div>
-  <div class="ink-divider"></div>
-
-  <p class="body-text" style="text-align:center;max-width:480px;margin:0 auto 24px;">
-    thoughts, musings and little dispatches from the creative life.
-    written slowly, with tea nearby.
-  </p>
-
-  <p class="body-text" style="margin-bottom:8px;">
-    all the writing lives over on
-    <a class="ink-link" href="https://your-name.substack.com" target="_blank" rel="noopener">substack →</a>
-  </p>
-
-  <div class="ink-divider-sm"></div>
-  <p style="font-size:12px;color:var(--ink-faint);font-style:italic;margin-bottom:14px;">recent leaves</p>
-
-  <div class="item-list">
-    <!-- copy this block for each post -->
-    <a class="list-item" href="#" target="_blank" rel="noopener">
-      <span class="li-meta">jan 2025</span>
-      <div><div class="li-title">a title for this piece</div><div class="li-desc">a teaser — one gentle sentence to draw someone further up the tree</div></div>
-    </a>
-    <a class="list-item" href="#" target="_blank" rel="noopener">
-      <span class="li-meta">dec 2024</span>
-      <div><div class="li-title">another title here</div><div class="li-desc">what you wrote about — keep it short, let the title breathe</div></div>
-    </a>
-    <a class="list-item" href="#" target="_blank" rel="noopener">
-      <span class="li-meta">nov 2024</span>
-      <div><div class="li-title">and another</div><div class="li-desc">the beginning of something longer, something that grew into a piece you're proud of</div></div>
-    </a>
+    <p class="sub">every path begins at the tree — follow one</p>
   </div>
 
-  <div class="leaf-note">
-    the tree is tallest in november.<br>come back often — the view changes.
+  <div class="tree-diagram">
+
+    <!-- Dashed trails from the tree out to each path (viewBox is 0–100 on
+         both axes; stretched to the box, so it tracks the node positions). -->
+    <svg class="tree-paths" viewBox="0 0 100 100" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <filter id="trail">
+          <feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="2" seed="7" result="n"/>
+          <feDisplacementMap in="SourceGraphic" in2="n" scale="1.6"/>
+        </filter>
+      </defs>
+      <g filter="url(#trail)" stroke="#2a2118" stroke-width="0.55" stroke-dasharray="1.6 2"
+         stroke-linecap="round" fill="none" opacity="0.55">
+        <path d="M50 48 L50 12"/>   <!-- up the tree -->
+        <path d="M50 48 L18 26"/>   <!-- pigeon's wing -->
+        <path d="M50 48 L82 26"/>   <!-- string lines -->
+        <path d="M50 48 L13 65"/>   <!-- trail of coins -->
+        <path d="M50 48 L87 65"/>   <!-- tadpoles -->
+        <path d="M50 48 L50 83"/>   <!-- whirlwind of petals -->
+      </g>
+    </svg>
+
+    <!-- The tree -->
+    <img class="tree-centre" src="assets/landmarks/farawaytree.svg" alt="Faraway Tree"
+         onerror="this.style.display='none'">
+
+    <!-- ── 6 PATHS ── swap the emoji / drop an SVG into assets/paths/ ── -->
+
+    <!-- Up the tree (stays here) -->
+    <a class="tree-path" href="#" style="--x:50%; --y:10%;" aria-label="Treehouse ladder — up the tree">
+      <span class="path-ic">
+        <img src="assets/paths/treehouse-ladder.svg" alt=""
+             onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+        <span class="path-ic-fallback">🪜</span>
+      </span>
+      <span class="path-name">treehouse ladder</span>
+      <span class="path-dest">up the tree</span>
+    </a>
+
+    <!-- Pigeon's Peak -->
+    <a class="tree-path" href="about.html" style="--x:17%; --y:25%;" aria-label="Pigeon's Peak">
+      <span class="path-ic">
+        <img src="assets/paths/pigeons-wing.svg" alt=""
+             onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+        <span class="path-ic-fallback">🕊️</span>
+      </span>
+      <span class="path-name">pigeon's wing</span>
+      <span class="path-dest">to pigeon's peak</span>
+    </a>
+
+    <!-- Singing Hollow -->
+    <a class="tree-path" href="videos.html" style="--x:83%; --y:25%;" aria-label="Singing Hollow">
+      <span class="path-ic">
+        <img src="assets/paths/string-lines.svg" alt=""
+             onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+        <span class="path-ic-fallback">🎵</span>
+      </span>
+      <span class="path-name">path of string lines</span>
+      <span class="path-dest">to singing hollow</span>
+    </a>
+
+    <!-- Wishing Well -->
+    <a class="tree-path" href="contact.html" style="--x:12%; --y:66%;" aria-label="Wishing Well">
+      <span class="path-ic">
+        <img src="assets/paths/trail-of-coins.svg" alt=""
+             onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+        <span class="path-ic-fallback">🪙</span>
+      </span>
+      <span class="path-name">trail of coins</span>
+      <span class="path-dest">to wishing well</span>
+    </a>
+
+    <!-- Frog Pond -->
+    <a class="tree-path" href="community.html" style="--x:88%; --y:66%;" aria-label="Frog Pond">
+      <span class="path-ic">
+        <img src="assets/paths/tadpoles.svg" alt=""
+             onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+        <span class="path-ic-fallback">🐸</span>
+      </span>
+      <span class="path-name">tadpoles down the river</span>
+      <span class="path-dest">to frog pond</span>
+    </a>
+
+    <!-- Field of Golden Daffodils -->
+    <a class="tree-path" href="reviews.html" style="--x:50%; --y:84%;" aria-label="Field of Golden Daffodils">
+      <span class="path-ic">
+        <img src="assets/paths/whirlwind-of-petals.svg" alt=""
+             onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+        <span class="path-ic-fallback">🌸</span>
+      </span>
+      <span class="path-name">whirlwind of petals</span>
+      <span class="path-dest">to field of golden daffodils</span>
+    </a>
+
+  </div><!-- /tree-diagram -->
+
+  <!-- ── YOUR TEXT GOES HERE ── -->
+  <div class="tree-text">
+    <p class="placeholder">
+      your words go here — a little about the tree, or about you.<br>
+      (this space is left for you to fill in)
+    </p>
   </div>
-</div>
 
-<!-- North → Pigeon's Peak -->
-<a class="nav-arrow north" href="about.html">
-  <svg width="32" height="48" viewBox="0 0 32 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <defs><filter id="f1"><feTurbulence type="turbulence" baseFrequency="0.05" numOctaves="2" seed="2" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2" xChannelSelector="R" yChannelSelector="G"/></filter></defs>
-    <path d="M16 44 C15.5 32, 16.5 18, 16 4" stroke="#2a2118" stroke-width="1.5" stroke-linecap="round" filter="url(#f1)"/>
-    <path d="M7 14 C11 8, 16 3, 25 14" stroke="#2a2118" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" filter="url(#f1)"/>
-  </svg>
-  <span class="arrow-lbl">pigeon's peak</span>
-</a>
-
-<!-- East → Singing Hollow -->
-<a class="nav-arrow east" href="videos.html">
-  <svg width="48" height="32" viewBox="0 0 48 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <defs><filter id="f3"><feTurbulence type="turbulence" baseFrequency="0.05" numOctaves="2" seed="13" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2" xChannelSelector="R" yChannelSelector="G"/></filter></defs>
-    <path d="M4 16 C16 15.5, 28 16.5, 44 16" stroke="#2a2118" stroke-width="1.5" stroke-linecap="round" filter="url(#f3)"/>
-    <path d="M34 7 C40 11, 45 16, 34 25" stroke="#2a2118" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" filter="url(#f3)"/>
-  </svg>
-  <span class="arrow-lbl">singing hollow</span>
-</a>
-
-<!-- Southeast → Frog Pond -->
-<a class="nav-arrow southeast" href="community.html">
-  <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <defs><filter id="f2"><feTurbulence type="turbulence" baseFrequency="0.05" numOctaves="2" seed="8" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2" xChannelSelector="R" yChannelSelector="G"/></filter></defs>
-    <path d="M5 5 C15 15, 25 25, 35 35" stroke="#2a2118" stroke-width="1.5" stroke-linecap="round" filter="url(#f2)"/>
-    <path d="M35 21 C35 29, 35 35, 21 35" stroke="#2a2118" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" filter="url(#f2)"/>
-  </svg>
-  <span class="arrow-lbl">frog pond</span>
-</a>
-
-<!-- Southwest → Field of Golden Daffodils -->
-<a class="nav-arrow southwest" href="reviews.html">
-  <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <defs><filter id="f4"><feTurbulence type="turbulence" baseFrequency="0.05" numOctaves="2" seed="17" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2" xChannelSelector="R" yChannelSelector="G"/></filter></defs>
-    <path d="M35 5 C25 15, 15 25, 5 35" stroke="#2a2118" stroke-width="1.5" stroke-linecap="round" filter="url(#f4)"/>
-    <path d="M5 21 C5 29, 5 35, 19 35" stroke="#2a2118" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" filter="url(#f4)"/>
-  </svg>
-  <span class="arrow-lbl">field of golden daffodils</span>
-</a>
-
-<!-- West → Wishing Well -->
-<a class="nav-arrow west" href="contact.html">
-  <svg width="48" height="32" viewBox="0 0 48 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <defs><filter id="f5"><feTurbulence type="turbulence" baseFrequency="0.05" numOctaves="2" seed="19" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2" xChannelSelector="R" yChannelSelector="G"/></filter></defs>
-    <path d="M44 16 C32 15.5, 20 16.5, 4 16" stroke="#2a2118" stroke-width="1.5" stroke-linecap="round" filter="url(#f5)"/>
-    <path d="M14 7 C8 11, 3 16, 14 25" stroke="#2a2118" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" filter="url(#f5)"/>
-  </svg>
-  <span class="arrow-lbl">wishing well</span>
-</a>
+</div><!-- /tree-page -->
 
 <script src="assets/js/nav.js"></script>
 </body>
